@@ -13,16 +13,19 @@ namespace relay
   {
     while (cpu_->IsRunning())
     {
+      if (debug_)
+        printf("%.2x: %s\n\n", cpu_->GetRegister(CPU::kPC),
+               std::bitset<16>(cpu_->Read(cpu_->GetRegister(CPU::kPC)))\
+               .to_string().c_str());
+
       Step();
       ++cycles_;
 
       if (debug_)
       {
-        printf(
-          "Registers:\n"
-          " A: %s\n B: %s\n C: %s\n D: %s\n M: %s\n S: %s\n L: %s\nPC: %s\n"
-          "Flags:\n"
-          "CY: %d\n Z: %d\n S: %d\n",
+        printf("Registers:\n A: %s\n B: %s\n C: %s\n D: %s\n M: %s\n S: %s\n "
+          "L: %s\nPC: %s\n\nFlags:\nCY: %d\n Z: %d\n S: %d\n\nInput:\n0x80: %s"
+          "\n0x81: %s\n",
           std::bitset<8>(cpu_->GetRegister(CPU::kA)).to_string().c_str(),
           std::bitset<8>(cpu_->GetRegister(CPU::kB)).to_string().c_str(),
           std::bitset<8>(cpu_->GetRegister(CPU::kC)).to_string().c_str(),
@@ -33,12 +36,9 @@ namespace relay
           std::bitset<8>(cpu_->GetRegister(CPU::kPC)).to_string().c_str(),
           cpu_->GetFlag(CPU::Flag::kCY),
           cpu_->GetFlag(CPU::Flag::kZ),
-          cpu_->GetFlag(CPU::Flag::kS)
-        );
-        std::cout << std::endl
-              << "Input:" << std::endl
-              << "0x80: " << std::bitset<8>(cpu_->Read(0x80)) << std::endl
-              << "0x81: " << std::bitset<8>(cpu_->Read(0x81)) << std::endl;
+          cpu_->GetFlag(CPU::Flag::kS),
+          std::bitset<8>(cpu_->Read(0x80)).to_string().c_str(),
+          std::bitset<8>(cpu_->Read(0x81)).to_string().c_str());
 
         std::cin.get();
         std::system("clear");

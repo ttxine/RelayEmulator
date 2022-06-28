@@ -5,10 +5,8 @@ namespace relay
 {
   class Memory {
     public:
-      uint16_t ReadROM(uint8_t addr);
-      uint8_t ReadInput(uint8_t addr);
-      uint8_t ReadUnused(uint8_t addr);
-      void WriteUnused(uint8_t addr, uint8_t value);
+      uint16_t Read(uint8_t);
+      void Write(uint8_t addr, uint8_t value);
 
     private:
       uint16_t program_data_[64] = {

@@ -1,6 +1,5 @@
 #pragma once
 #include <iostream>
-#include <bitset>
 
 #include "memory.h"
 
@@ -15,6 +14,7 @@ namespace relay
         kL,
         kPC
       };
+
       enum Instruction : uint16_t
       {
         kHALT       = 0x1000,
@@ -29,6 +29,7 @@ namespace relay
         kMOV        = 0x1800,
         kALU_Op     = 0x4000
       };
+
       enum class Flag : uint8_t
       {
         kCY,

@@ -55,24 +55,11 @@ namespace relay
 
   uint16_t CPU::Read(uint8_t addr)
   {
-    if (addr >= 0x00 && addr <= 0x7F)
-      return memory_->ReadROM(addr);
-    else if (addr >= 0x80 && addr <= 0x8F)
-      return memory_->ReadInput(addr);
-    else if (addr >= 0x90 && addr <= 0xFF)
-      return memory_->ReadUnused(addr);
-    else
-      return 0x00;
+    return memory_->Read(addr);
   }
 
-  void CPU::Write(uint8_t addr, uint8_t value)
-  {
-    if (addr >= 0x00 && addr <= 0x7F)
-      return;
-    else if (addr >= 0x80 && addr <= 0x8F)
-      return;
-    else if (addr >= 0x90 && addr <= 0xFF)
-      memory_->WriteUnused(addr, value);
+  void CPU::Write(uint8_t addr, uint8_t value) {
+    return memory_->Write(addr, value);
   }
 
   uint16_t CPU::Fetch()
@@ -286,7 +273,7 @@ namespace relay
 
     SetFlag(Flag::kCY, (Gs1 + Op2 + GetFlag(Flag::kCY)) >> 8);
     SetFlag(Flag::kZ, res == 0);
-    SetFlag(Flag::kZ, res >> 7);
+    SetFlag(Flag::kS, res >> 7);
 
     return res;
   }
@@ -297,7 +284,7 @@ namespace relay
 
     SetFlag(Flag::kCY, (Gs1 + Op2) >> 8);
     SetFlag(Flag::kZ, res == 0);
-    SetFlag(Flag::kZ, res >> 7);
+    SetFlag(Flag::kS, res >> 7);
 
     return res;
   }
@@ -308,7 +295,7 @@ namespace relay
 
     SetFlag(Flag::kCY, ((Gs1 - Op2 - GetFlag(Flag::kCY)) >> 8) & 0x1);
     SetFlag(Flag::kZ, res == 0);
-    SetFlag(Flag::kZ, res >> 7);
+    SetFlag(Flag::kS, res >> 7);
 
     return res;
   }
@@ -319,7 +306,7 @@ namespace relay
 
     SetFlag(Flag::kCY, ((Gs1 - Op2) >> 8) & 0x1);
     SetFlag(Flag::kZ, res == 0);
-    SetFlag(Flag::kZ, res >> 7);
+    SetFlag(Flag::kS, res >> 7);
 
     return res;
   }
@@ -330,7 +317,7 @@ namespace relay
 
     SetFlag(Flag::kCY, 0);
     SetFlag(Flag::kZ, res == 0);
-    SetFlag(Flag::kZ, res >> 7);
+    SetFlag(Flag::kS, res >> 7);
 
     return res;
   }
@@ -341,7 +328,7 @@ namespace relay
 
     SetFlag(Flag::kCY, 0);
     SetFlag(Flag::kZ, res == 0);
-    SetFlag(Flag::kZ, res >> 7);
+    SetFlag(Flag::kS, res >> 7);
 
     return res;
   }
@@ -352,7 +339,7 @@ namespace relay
 
     SetFlag(Flag::kCY, 0);
     SetFlag(Flag::kZ, res == 0);
-    SetFlag(Flag::kZ, res >> 7);
+    SetFlag(Flag::kS, res >> 7);
 
     return res;
   }
@@ -363,7 +350,7 @@ namespace relay
 
     SetFlag(Flag::kCY, 0);
     SetFlag(Flag::kZ, res == 0);
-    SetFlag(Flag::kZ, res >> 7);
+    SetFlag(Flag::kS, res >> 7);
 
     return res;
   }
@@ -375,7 +362,7 @@ namespace relay
 
     SetFlag(Flag::kCY, 0);
     SetFlag(Flag::kZ, res == 0);
-    SetFlag(Flag::kZ, res >> 7);
+    SetFlag(Flag::kS, res >> 7);
 
     return res;
   }
@@ -386,7 +373,7 @@ namespace relay
 
     SetFlag(Flag::kCY, Gs & 0x1);
     SetFlag(Flag::kZ, res == 0);
-    SetFlag(Flag::kZ, res >> 7);
+    SetFlag(Flag::kS, res >> 7);
 
     return res;
   }
@@ -398,7 +385,7 @@ namespace relay
 
     SetFlag(Flag::kCY, Gs & 0x1);
     SetFlag(Flag::kZ, res == 0);
-    SetFlag(Flag::kZ, res >> 7);
+    SetFlag(Flag::kS, res >> 7);
 
     return res;
   }
