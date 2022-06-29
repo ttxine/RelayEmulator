@@ -23,7 +23,25 @@ namespace relay
 
       if (debug_)
       {
-        printf("Registers:\n A: %s\n B: %s\n C: %s\n D: %s\n M: %s\n S: %s\n "
+        PrintInfo();
+        std::cin.get();
+      }
+    }
+
+    PrintInfo();
+    std::cout << std::endl << "On a real computer execution of program will "
+              "take " << cycles_ * kSecPerCycle << " seconds to complete."
+              << std::endl;
+  }
+
+  void Emulator::Step()
+  {
+    cpu_->Decode(cpu_->Fetch());
+  }
+
+  void Emulator::PrintInfo()
+  {
+    printf("Registers:\n A: %s\n B: %s\n C: %s\n D: %s\n M: %s\n S: %s\n "
           "L: %s\nPC: %s\n\nFlags:\nCY: %d\n Z: %d\n S: %d\n\nInput:\n0x80: %s"
           "\n0x81: %s\n",
           std::bitset<8>(cpu_->GetRegister(CPU::kA)).to_string().c_str(),
@@ -39,18 +57,5 @@ namespace relay
           cpu_->GetFlag(CPU::Flag::kS),
           std::bitset<8>(cpu_->Read(0x80)).to_string().c_str(),
           std::bitset<8>(cpu_->Read(0x81)).to_string().c_str());
-
-        std::cin.get();
-        std::system("clear");
-      }
-    }
-    std::cout << std::endl << "On a real computer execution of program will "
-              "take " << cycles_ * kSecPerCycle << " seconds to complete."
-              << std::endl;
-  }
-
-  void Emulator::Step()
-  {
-    cpu_->Decode(cpu_->Fetch());
   }
 }

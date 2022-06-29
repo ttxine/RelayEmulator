@@ -1,6 +1,4 @@
 #pragma once
-#include <iostream>
-
 #include "memory.h"
 
 namespace relay
@@ -41,11 +39,32 @@ namespace relay
       CPU(Memory* memory) : memory_(memory) {}
 
     public:
-      bool IsRunning() const { return is_running_; };
-      uint8_t GetRegister(uint8_t code);
-      void SetRegister(uint8_t code, uint8_t value);
-      bool GetFlag(Flag f);
-      void SetFlag(Flag f, bool v);
+      bool IsRunning() const
+      {
+        return is_running_;
+      };
+
+      uint8_t GetRegister(uint8_t code)
+      {
+        return GetSetRegister(code);
+      }
+
+      void SetRegister(uint8_t code, uint8_t value)
+      {
+        GetSetRegister(code) = value;
+      }
+
+      bool GetFlag(Flag f)
+      {
+        return GetSetFlag(f);
+      }
+
+      void SetFlag(Flag f, bool v)
+      {
+        GetSetFlag(f) = v;
+      }
+
+    public:
       uint16_t Read(uint8_t addr);
       void Write(uint8_t addr, uint8_t value);
 

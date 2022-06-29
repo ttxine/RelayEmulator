@@ -1,6 +1,8 @@
 #pragma once
-#include "cpu.h"
+#include <iostream>
 #include <bitset>
+
+#include "cpu.h"
 
 namespace relay
 {
@@ -14,6 +16,7 @@ namespace relay
     public:
       void Run();
       void Step();
+      void PrintInfo();
 
     private:
       bool debug_ = false;

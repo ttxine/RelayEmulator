@@ -4,16 +4,29 @@
 
 namespace relay
 {
-  bool& CPU::GetSetFlag(Flag f)
+  uint8_t& CPU::GetSetRegister(uint8_t code)
   {
-    if (f == Flag::kCY) return carry_;
-    else if (f == Flag::kZ) return zero_;
-    else return sign_;
+    switch (Register(code & 0x07))
+    {
+      case kA: return A_;
+      case kB: return B_;
+      case kC: return C_;
+      case kD: return D_;
+      case kM: return M_;
+      case kS: return S_;
+      case kL: return L_;
+      default: return PC_;
+    }
   }
 
-  bool CPU::GetFlag(Flag f) { return GetSetFlag(f); }
-
-  void CPU::SetFlag(Flag f, bool v) { GetSetFlag(f) = v; }
+  bool& CPU::GetSetFlag(Flag f)
+  {
+    switch(f) {
+      case Flag::kCY: return carry_;
+      case Flag::kZ: return zero_;
+      default: return sign_;
+    }
+  }
 
   bool CPU::CheckCondition(uint8_t cond)
   {
@@ -30,42 +43,19 @@ namespace relay
     }
   }
 
-  uint8_t& CPU::GetSetRegister(uint8_t code)
-  {
-    switch (Register(code))
-    {
-      case kA: return A_;
-      case kB: return B_;
-      case kC: return C_;
-      case kD: return D_;
-      case kM: return M_;
-      case kS: return S_;
-      case kL: return L_;
-      case kPC: return PC_;
-    }
-    throw std::exception();
-  }
-
-  uint8_t CPU::GetRegister(uint8_t code) { return GetSetRegister(code); }
-
-  void CPU::SetRegister(uint8_t code, uint8_t value)
-  {
-    GetSetRegister(code) = value;
-  }
-
   uint16_t CPU::Read(uint8_t addr)
   {
     return memory_->Read(addr);
   }
 
-  void CPU::Write(uint8_t addr, uint8_t value) {
+  void CPU::Write(uint8_t addr, uint8_t value)
+  {
     return memory_->Write(addr, value);
   }
 
   uint16_t CPU::Fetch()
   {
-    uint8_t PC = GetRegister(kPC);
-    return Read(PC);
+    return Read(PC_);
   }
 
   void CPU::Decode(uint16_t instruction)
@@ -89,6 +79,9 @@ namespace relay
       uint8_t G = (instruction & 0x0700) >> 8;
       uint8_t P = instruction & 0x0007;
 
+      if (P < 4)
+        throw std::exception();
+
       LOAD(G, P);
       ++PC_;
     }
@@ -99,12 +92,14 @@ namespace relay
 
       LOAD_Imm(G, Imm);
       ++PC_;
-      std::cout << PC_;
     }
     else if ((instruction & 0xF800) == kSTORE)
     {
       uint8_t G = (instruction & 0x0700) >> 8;
       uint8_t P = instruction & 0x0007;
+
+      if (P < 4)
+        throw std::exception();
 
       STORE(G, P);
       ++PC_;
@@ -148,15 +143,18 @@ namespace relay
       MOV(Gd, Gs);
       ++PC_;
     }
-    else {
-      NOP();
+    else
       ++PC_;
-    }
   }
 
-  void CPU::HALT() { is_running_ = false; }
+  void CPU::HALT()
+  {
+    is_running_ = false;
+  }
 
-  void CPU::NOP() {}
+  void CPU::NOP()
+  {
+  }
 
   void CPU::LOAD(uint8_t G, uint8_t P)
   {
@@ -185,12 +183,16 @@ namespace relay
       SetRegister(kL, GetRegister(kPC) + 1);
       SetRegister(kPC, Imm);
     }
+    else
+      ++PC_;
   }
 
   void CPU::JMP(uint8_t cond, uint8_t Imm)
   {
     if (CheckCondition(cond))
       SetRegister(kPC, Imm);
+    else
+      ++PC_;
   }
 
   void CPU::MOVI(uint8_t cond, uint8_t Gd, uint8_t Imm)
