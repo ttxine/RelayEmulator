@@ -1,5 +1,3 @@
-#include <exception>
-
 #include "cpu.h"
 
 namespace relay
@@ -79,9 +77,6 @@ namespace relay
       uint8_t G = (instruction & 0x0700) >> 8;
       uint8_t P = instruction & 0x0007;
 
-      if (P < 4)
-        throw std::exception();
-
       LOAD(G, P);
       ++PC_;
     }
@@ -97,9 +92,6 @@ namespace relay
     {
       uint8_t G = (instruction & 0x0700) >> 8;
       uint8_t P = instruction & 0x0007;
-
-      if (P < 4)
-        throw std::exception();
 
       STORE(G, P);
       ++PC_;
@@ -158,7 +150,8 @@ namespace relay
 
   void CPU::LOAD(uint8_t G, uint8_t P)
   {
-    SetRegister(G, Read(GetRegister(P)) & 0x00FF);
+    if (P > 4)
+      SetRegister(G, Read(GetRegister(P)) & 0x00FF);
   }
 
   void CPU::LOAD_Imm(uint8_t G, uint8_t Imm)
@@ -168,7 +161,8 @@ namespace relay
 
   void CPU::STORE(uint8_t G, uint8_t P)
   {
-    Write(GetRegister(P), GetRegister(G));
+    if (P > 4)
+      Write(GetRegister(P), GetRegister(G));
   }
 
   void CPU::STORE_Imm(uint8_t G, uint8_t Imm)

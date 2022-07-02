@@ -2,7 +2,7 @@
 #include <iostream>
 #include <bitset>
 
-#include "cpu.h"
+#include "compiler.h"
 
 namespace relay
 {
@@ -11,7 +11,8 @@ namespace relay
       const float kSecPerCycle = 0.66;
 
     public:
-      Emulator(bool debug = false);
+      Emulator(std::string program_path, bool debug = false);
+      Emulator(std::string program_path, uint8_t* input, bool debug = false);
 
     public:
       void Run();

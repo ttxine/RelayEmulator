@@ -1,6 +1,25 @@
 #include "src/emulator.h"
 
-int main() {
-  relay::Emulator emu = relay::Emulator(false);
-  emu.Run();
+int main(int argc, char* argv[]) {
+  if (argc > 1)
+  {
+    if (argc > 2)
+    {
+      uint8_t input[2];
+      input[0] = static_cast<uint8_t>(atoi(argv[2]));
+
+      if (argc > 3)
+        input[1] = static_cast<uint8_t>(atoi(argv[3]));
+
+      relay::Emulator emu = relay::Emulator(argv[1], input, false);
+      emu.Run();
+    }
+    else
+    {
+      relay::Emulator emu = relay::Emulator(argv[1], false);
+      emu.Run();
+    }
+  }
+  else
+    throw std::exception();
 }
