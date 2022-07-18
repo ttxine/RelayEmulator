@@ -11,12 +11,12 @@ int main(int argc, char* argv[]) {
       if (argc > 3)
         input[1] = static_cast<uint8_t>(atoi(argv[3]));
 
-      relay::Emulator emu = relay::Emulator(argv[1], input, false);
+      relay::Emulator emu = relay::Emulator(argv[1], input, true);
       emu.Run();
     }
     else
     {
-      relay::Emulator emu = relay::Emulator(argv[1], false);
+      relay::Emulator emu = relay::Emulator(argv[1], true);
       emu.Run();
     }
   }

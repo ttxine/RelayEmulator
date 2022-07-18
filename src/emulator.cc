@@ -1,8 +1,8 @@
-#include "emulator.h"
+#include "src/emulator.h"
 
 namespace relay
 {
-  Emulator::Emulator(std::string program_path, bool debug)
+  Emulator::Emulator(const std::string& program_path, bool debug)
   {
     std::ifstream program(program_path, std::ios::in | std::ios::binary);
 
@@ -11,7 +11,8 @@ namespace relay
     debug_ = debug;
   }
 
-  Emulator::Emulator(std::string program_path, uint8_t* input, bool debug)
+  Emulator::Emulator(const std::string& program_path, uint8_t* input,
+                     bool debug)
   {
     std::ifstream program(program_path, std::ios::in | std::ios::binary);
 
