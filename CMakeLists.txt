@@ -12,7 +12,7 @@ set(SOURCES
     src/cpu.cc
     src/emulator.cc
     src/compiler.cc
-    src/tokenline.cc)
+    src/token.cc)
 
 set(TEST_SOURCES
     tests/test_compiler.cc

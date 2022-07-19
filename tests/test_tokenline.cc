@@ -1,13 +1,16 @@
 #include <gtest/gtest.h>
 
-#include "src/tokenline.h"
+#include "src/token.h"
 
 TEST(TokenLineTests, test_get_next_token)
 {
-  TokenLine tline("  load A, M");
+  token::TokenLine tline("  load A, M");
 
-  EXPECT_EQ(tline.GetNextToken(), "load");
-  EXPECT_EQ(tline.GetNextToken(), "A");
-  EXPECT_EQ(tline.GetNextToken(), "M");
-  EXPECT_TRUE(tline.GetNextToken().empty());
+  EXPECT_EQ(tline.GetNextToken().str, "load");
+
+  EXPECT_EQ(tline.GetNextToken().str, "A");
+
+  EXPECT_EQ(tline.GetNextToken().str, "M");
+
+  EXPECT_TRUE(token::is_none(tline.GetNextToken()));
 }

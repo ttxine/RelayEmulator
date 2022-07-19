@@ -6,110 +6,127 @@
 
 uint16_t Compiler::EncodeInstruction(const std::string& instruction)
 {
-  TokenLine tline(instruction);
+  token::TokenLine tline(instruction);
 
-  std::string operation = tline.GetNextToken();
-  std::transform(operation.begin(), operation.end(),
-                 operation.begin(), ::tolower);
+  token::TokenLine::Token itoken = tline.GetNextToken();
 
-  if (operation == "halt")
+  if (!token::is_intruction(itoken))
+    throw CompilerException("Invalid instruction");
+
+  std::transform(itoken.str.begin(), itoken.str.end(),
+                 itoken.str.begin(), ::tolower);
+
+  if (itoken.str == "halt")
     return 0x1000;
-  else if (operation == "nop")
+  else if (itoken.str == "nop")
     return 0x0000;
-  else if (operation == "load")
+  else if (itoken.str == "load")
   {
-    std::string G = tline.GetNextToken();
-    std::string P = tline.GetNextToken();
+    token::TokenLine::Token G = tline.GetNextToken();
+    token::TokenLine::Token P = tline.GetNextToken();
 
-    if (G.empty() || P.empty())
-      throw CompilerException("Invalid instruction");
+    if (!token::is_operand(G) || !token::is_operand(G))
+      throw CompilerException("Invalid operands");
 
-    if (::isdigit(P[0]))
-      return 0x2000 | GetRegisterCode(G) << 8 | ImmStringToInt(P);
+    if (::isdigit(P.str[0]))
+      return 0x2000 | GetRegisterCode(G.str) << 8 | ImmStringToInt(P.str);
     else
-      return 0x2800 | GetRegisterCode(G) << 8 | GetRegisterCode(P);
+      return 0x2800 | GetRegisterCode(G.str) << 8 | GetRegisterCode(P.str);
   }
-  else if (operation == "store")
+  else if (itoken.str == "store")
   {
-    std::string G = tline.GetNextToken();
-    std::string P = tline.GetNextToken();
+    token::TokenLine::Token G = tline.GetNextToken();
+    token::TokenLine::Token P = tline.GetNextToken();
 
-    if (G.empty() || P.empty())
-      throw CompilerException("Invalid instruction");
+    if (!token::is_operand(G) || !token::is_operand(G))
+      throw CompilerException("Invalid operands");
 
-    if (::isdigit(P[0]))
-      return 0x3000 | GetRegisterCode(G) << 8 | ImmStringToInt(P);
+    if (::isdigit(P.str[0]))
+      return 0x3000 | GetRegisterCode(G.str) << 8 | ImmStringToInt(P.str);
     else
-      return 0x3800 | GetRegisterCode(G) << 8 | GetRegisterCode(P);   
+      return 0x3800 | GetRegisterCode(G.str) << 8 | GetRegisterCode(P.str);   
   }
-  else if (operation == "call")
+  else if (itoken.str == "call")
   {
-    std::string Cond = tline.GetNextToken();
-    std::string Imm = tline.GetNextToken();
+    token::TokenLine::Token cond = tline.GetNextToken();
+    token::TokenLine::Token Imm = tline.GetNextToken();
 
-    if (Cond.empty())
+    if (!token::is_operand(cond))
+      throw CompilerException("Invalid operands");
+
+    if (token::is_none(Imm))
+      return 0x8F00 | ImmStringToInt(cond.str);
+
+    if (!token::is_operand(Imm))
+        throw CompilerException("Invalid operands");
+
+    return 0x8F00 | GetConditionCode(cond.str) << 12 | ImmStringToInt(Imm.str);
+  }
+  else if (itoken.str == "jmp")
+  {
+    token::TokenLine::Token cond = tline.GetNextToken();
+    token::TokenLine::Token Imm = tline.GetNextToken();
+
+    if (!token::is_operand(cond))
+      throw CompilerException("Invalid operands");
+
+    if (token::is_none(Imm))
+      return 0x8700 | ImmStringToInt(cond.str);
+
+    if (!token::is_operand(Imm))
+      throw CompilerException("Invalid operands");
+
+    return 0x8700 | GetConditionCode(cond.str) << 12 | ImmStringToInt(Imm.str);
+  }
+  else if (itoken.str == "movi")
+  {
+    token::TokenLine::Token cond = tline.GetNextToken();
+    token::TokenLine::Token Gd = tline.GetNextToken();
+    token::TokenLine::Token Imm = tline.GetNextToken();
+
+    if (!token::is_operand(cond) || !token::is_operand(Gd))
       throw CompilerException("Invalid instruction");
 
-    if (Imm.empty())
-      return 0x8F00 | ImmStringToInt(Cond);
+    if (token::is_none(Imm)) 
+      return 0x8000 | GetRegisterCode(cond.str) << 12 | ImmStringToInt(Gd.str);
 
-    return 0x8F00 | GetConditionCode(Cond) << 12 | ImmStringToInt(Imm);
+    if (!token::is_operand(Imm))
+      throw CompilerException("Invalid operands");
+
+    return 0x8000 | GetConditionCode(cond.str) << 12
+           | GetRegisterCode(Gd.str) << 8 | ImmStringToInt(Imm.str);
   }
-  else if (operation == "jmp")
+  else if (itoken.str == "mov")
   {
-    std::string Cond = tline.GetNextToken();
-    std::string Imm = tline.GetNextToken();
+    token::TokenLine::Token Gd = tline.GetNextToken();
+    token::TokenLine::Token Gs = tline.GetNextToken();
 
-    if (Cond.empty())
+    if (!token::is_operand(Gd) || !token::is_operand(Gs))
       throw CompilerException("Invalid instruction");
 
-    if (Imm.empty())
-      return 0x8700 | ImmStringToInt(Cond);
-
-    return 0x8700 | GetConditionCode(Cond) << 12 | ImmStringToInt(Imm);
-  }
-  else if (operation == "movi")
-  {
-    std::string Cond = tline.GetNextToken();
-    std::string Gd = tline.GetNextToken();
-    std::string Imm = tline.GetNextToken();
-
-    if (Cond.empty() || Gd.empty())
-      throw CompilerException("Invalid instruction");
-
-    if (Imm.empty()) 
-      return 0x8000 | GetConditionCode(Cond) << 12 | ImmStringToInt(Imm);
-    
-    return 0x8000 | GetConditionCode(Cond) << 12 | GetRegisterCode(Gd) << 8
-           | ImmStringToInt(Imm);
-  }
-  else if (operation == "mov")
-  {
-    std::string Gd = tline.GetNextToken();
-    std::string Gs = tline.GetNextToken();
-
-    if (Gd.empty() || Gs.empty())
-      throw CompilerException("Invalid instruction");
-
-    return 0x1800 | GetRegisterCode(Gd) << 8 | GetRegisterCode(Gs) << 4;
+    return 0x1800 | GetRegisterCode(Gd.str) << 8 | GetRegisterCode(Gs.str) << 4;
   }
   else
-    return EncodeALUInstruction(operation, tline);
+    return EncodeALUInstruction(itoken.str, tline);
 }
 
 uint16_t Compiler::EncodeALUInstruction(const std::string& operation,
-                                        TokenLine& operands)
+                                        token::TokenLine& operands)
 {
-  std::string Gd = operands.GetNextToken();
-  std::string Gs = operands.GetNextToken();
-  std::string Op2 = operands.GetNextToken();
+  token::TokenLine::Token Gd = operands.GetNextToken();
+  token::TokenLine::Token Gs = operands.GetNextToken();
+  token::TokenLine::Token Op2 = operands.GetNextToken();
 
-  if (Gd.empty() || Gs.empty())
+  if (!token::is_operand(Gd) || !token::is_operand(Gs))
     throw CompilerException("Invalid instruction");
 
-  if (Op2.empty())
-    return EncodeUnaryALUInstruction(operation, Gd, Gs);
-  return EncodeBinaryALUInstruction(operation, Gd, Gs, Op2);
+  if (token::is_none(Op2))
+    return EncodeUnaryALUInstruction(operation, Gd.str, Gs.str);
+
+  if (!token::is_operand(Op2))
+      throw CompilerException("Invalid operands");
+
+  return EncodeBinaryALUInstruction(operation, Gd.str, Gs.str, Op2.str);
 }
 
 uint16_t Compiler::EncodeBinaryALUInstruction(const std::string& operation,
@@ -118,18 +135,15 @@ uint16_t Compiler::EncodeBinaryALUInstruction(const std::string& operation,
                                               const std::string& Op2)
 {
   uint16_t icode = 0x4000;
-  
-  uint8_t opcode;
-  if (operation == "adc") opcode = 0;
-  else if (operation == "add") opcode = 1;
-  else if (operation == "sbc") opcode = 2;
-  else if (operation == "sub") opcode = 3;
-  else if (operation == "and") opcode = 4;
-  else if (operation == "or") opcode = 5;
-  else if (operation == "xor") opcode = 6;
-  else throw CompilerException("Invalid instruction");
 
-  icode |= (opcode << 11);
+  if (operation == "adc");
+  else if (operation == "add") icode |= 1 << 11;
+  else if (operation == "sbc") icode |= 2 << 11;
+  else if (operation == "sub") icode |= 3 << 11;
+  else if (operation == "and") icode |= 4 << 11;
+  else if (operation == "or") icode |= 5 << 11;
+  else if (operation == "xor") icode |= 6 << 11;
+  else throw CompilerException("Invalid instruction");
 
   if (Gd != "F")
     icode |= (GetRegisterCode(Gd) << 8) | 0x0008;
@@ -154,14 +168,11 @@ uint16_t Compiler::EncodeUnaryALUInstruction(const std::string& operation,
 {
   uint16_t icode = 0x7800;
 
-  uint8_t opcode;
-  if (operation == "not") opcode = 0;
-  else if (operation == "ror") opcode = 1;
-  else if (operation == "shr") opcode = 2;
-  else if (operation == "rcr") opcode = 3;
+  if (operation == "not");
+  else if (operation == "ror") icode |= 1 << 1;
+  else if (operation == "shr") icode |= 2 << 1;
+  else if (operation == "rcr") icode |= 3 << 1;
   else throw CompilerException("Invalid instruction");
-
-  icode |= opcode << 1;
   
   if (Gd != "F")
     icode |= (GetRegisterCode(Gd)) << 8 | 0x08;

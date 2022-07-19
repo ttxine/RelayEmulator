@@ -2,7 +2,7 @@
 #include <cstdint>
 #include <stdexcept>
 
-#include "src/tokenline.h"
+#include "src/token.h"
 
 class Compiler
 {
@@ -20,7 +20,7 @@ class Compiler
 
   private:
     uint16_t EncodeALUInstruction(const std::string& operation,
-                                  TokenLine& operands);
+                                  token::TokenLine& operands);
     uint16_t EncodeBinaryALUInstruction(const std::string& operation,
                                         const std::string& Gd,
                                         const std::string& Gs,
