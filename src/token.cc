@@ -1,10 +1,8 @@
-#include <iostream>
-
 #include "src/token.h"
 
 namespace token
 {
-TokenLine::Token TokenLine::GetNextToken()
+  TokenLine::Token TokenLine::GetNextToken()
   {
     std::string::const_iterator token_begin;
     TokenType type = TokenType::kNone;

@@ -1,7 +1,3 @@
-#include <string>
-#include <cstdint>
-#include <algorithm>
-
 #include "src/compiler.h"
 
 uint16_t Compiler::EncodeInstruction(const std::string& instruction)

@@ -1,5 +1,6 @@
 #include <string>
 #include <cstdint>
+#include <algorithm>
 #include <stdexcept>
 
 #include "src/token.h"
