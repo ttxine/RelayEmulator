@@ -225,7 +225,7 @@ namespace relay
   }
 
   void CPU::BinaryALUOperation(uint8_t code, uint8_t Gd, uint8_t Gs1,
-                        uint8_t Op2, bool r, bool i)
+                               uint8_t Op2, bool r, bool i)
   {
     uint8_t res;
 
