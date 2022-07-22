@@ -1,3 +1,6 @@
+#include <bitset>
+#include <iostream>
+
 #include "src/emulator.h"
 
 namespace relay
@@ -6,8 +9,13 @@ namespace relay
   {
     std::ifstream program(program_path, std::ios::in | std::ios::binary);
 
-    memory_ = new Memory(program);
-    cpu_ = new CPU(memory_);
+    if (program.fail())
+    {
+      throw std::runtime_error("Can't open a file: \"" + program_path + '"');
+    }
+
+    Memory* memory = new Memory(program);
+    cpu_ = new CPU(memory);
     debug_ = debug;
   }
 
@@ -16,9 +24,19 @@ namespace relay
   {
     std::ifstream program(program_path, std::ios::in | std::ios::binary);
 
-    memory_ = new Memory(program, input);
-    cpu_ = new CPU(memory_);
+    if (program.fail())
+    {
+      throw std::runtime_error("Can't open a file");
+    }
+
+    Memory* memory = new Memory(program, input);
+    cpu_ = new CPU(memory);
     debug_ = debug;
+  }
+
+  Emulator::~Emulator()
+  {
+    delete cpu_;
   }
 
   void Emulator::Run()
@@ -26,12 +44,13 @@ namespace relay
     while (cpu_->IsRunning())
     {
       if (debug_)
+      {
         printf("%.2x: %s\n\n", cpu_->GetRegister(CPU::kPC),
                std::bitset<16>(cpu_->Read(cpu_->GetRegister(CPU::kPC)))\
                .to_string().c_str());
+      }
 
       Step();
-      ++cycles_;
 
       if (debug_)
       {

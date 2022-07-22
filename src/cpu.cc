@@ -184,15 +184,21 @@ namespace relay
   void CPU::JMP(uint8_t cond, uint8_t Imm)
   {
     if (CheckCondition(cond))
+    {
       SetRegister(kPC, Imm);
+    }
     else
+    {
       ++PC_;
+    }
   }
 
   void CPU::MOVI(uint8_t cond, uint8_t Gd, uint8_t Imm)
   {
     if (CheckCondition(cond))
+    {
       SetRegister(Gd, Imm);
+    }
   }
 
   void CPU::MOV(uint8_t Gd, uint8_t Gs)
@@ -230,7 +236,10 @@ namespace relay
     uint8_t res;
 
     Gs1 = GetRegister(Gs1);
-    if (!i) Op2 = GetRegister(Op2);
+    if (!i)
+    {
+      Op2 = GetRegister(Op2);
+    }
 
     switch(code)
     {

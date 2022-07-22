@@ -1,3 +1,4 @@
+#pragma once
 #include <string>
 
 namespace token
@@ -21,6 +22,8 @@ namespace token
       std::string line_;
       std::string::const_iterator iter_;
   };
+
+  std::string strtolower(const std::string& str);
 
   inline bool is_intruction(const TokenLine::Token& token)
   {

@@ -36,7 +36,13 @@ namespace relay
       };
 
     public:
-      CPU(Memory* memory) : memory_(memory) {}
+      CPU(Memory* memory) : memory_(memory)
+      {
+      }
+      ~CPU()
+      {
+        delete memory_;
+      }
 
     public:
       bool IsRunning() const
@@ -123,8 +129,8 @@ namespace relay
       uint8_t L_ = 0x00;
       uint8_t PC_ = 0x00;
       Memory* memory_ = nullptr;
-      bool sign_;
-      bool zero_;
-      bool carry_;
+      bool sign_ = false;
+      bool zero_ = false;
+      bool carry_ = false;
   };
 }
