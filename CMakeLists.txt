@@ -15,7 +15,6 @@ set(SOURCES
     src/token.cc)
 
 set(TEST_SOURCES
-    tests/test_compiler.cc
     tests/test_tokenline.cc)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)

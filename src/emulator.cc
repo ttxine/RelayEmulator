@@ -5,20 +5,6 @@
 
 namespace relay
 {
-  Emulator::Emulator(const std::string& program_path, bool debug)
-  {
-    std::ifstream program(program_path, std::ios::in | std::ios::binary);
-
-    if (program.fail())
-    {
-      throw std::runtime_error("Can't open a file: \"" + program_path + '"');
-    }
-
-    Memory* memory = new Memory(program);
-    cpu_ = new CPU(memory);
-    debug_ = debug;
-  }
-
   Emulator::Emulator(const std::string& program_path, uint8_t* input,
                      bool debug)
   {

@@ -13,7 +13,7 @@ int main(int argc, char* argv[]) {
   bool debug = false;
 
   std::string help_message = "Usage: " + std::string(argv[0])\
-    + " [OPTION] [FILE] [INPUT]";
+    + " [OPTION] [FILE]";
 
   char option;
   while ((option = ::getopt(argc, argv, "s:i:d")) != -1)
@@ -29,7 +29,7 @@ int main(int argc, char* argv[]) {
         }
         catch (const std::runtime_error& e)
         {
-          std::cerr << e.what() << std::endl;
+          std::cerr << argv[0] << ": compiler: " << e.what() << std::endl;
           ::exit(EXIT_FAILURE);
         }
         break;
@@ -73,10 +73,8 @@ int main(int argc, char* argv[]) {
     }
     else
     {
-      {
-        std::cerr << help_message << std::endl;
-        ::exit(EXIT_FAILURE);
-      }
+      std::cerr << help_message << std::endl;
+      ::exit(EXIT_FAILURE);
     }
   }
 
@@ -87,7 +85,7 @@ int main(int argc, char* argv[]) {
   }
   catch(const std::runtime_error& e)
   {
-    std::cerr << e.what() << std::endl;
+    std::cerr << argv[0] << ": emulator: " << e.what() << std::endl;
     ::exit(EXIT_FAILURE);
   }
 

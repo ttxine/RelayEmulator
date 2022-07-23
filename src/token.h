@@ -6,7 +6,7 @@ namespace token
   class TokenLine
   {
     public:
-      TokenLine(const std::string& line) : line_(line), iter_(line.begin())
+      TokenLine(const std::string& line) : line_(line), iter_(line_.begin())
       {
       }
 
@@ -19,7 +19,7 @@ namespace token
       Token GetNextToken();
 
     private:
-      std::string line_;
+      const std::string line_;
       std::string::const_iterator iter_;
   };
 

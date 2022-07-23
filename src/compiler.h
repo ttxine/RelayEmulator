@@ -26,7 +26,7 @@ class Compiler
       public:
         InvalidInstructionException()
         :
-        CompilerException("Invalid instruction")
+        CompilerException("instruction expected")
         {
         }
     };
@@ -36,7 +36,7 @@ class Compiler
       public:
         InvalidOperandException()
         :
-        CompilerException("Invalid operand")
+        CompilerException("operand expected")
         {
         }
     };

@@ -9,6 +9,11 @@ namespace token
     std::string::const_iterator token_begin;
     TokenType type = TokenType::kNone;
 
+    if (iter_ == line_.begin())
+    {
+      type = TokenType::kInstruction;
+    }
+
     while (std::isspace(*iter_) || *iter_ == ',')
     {
       if (*iter_ == ',')
@@ -26,20 +31,21 @@ namespace token
 
     std::string token(token_begin, iter_);
 
+    while (std::isspace(*iter_))
+    {
+      ++iter_;
+    }
+
+    if (*iter_ == ',')
+    {
+      type = TokenType::kOperand;
+    }
+
     if (token.length())
     {
-      while (std::isspace(*iter_))
-      {
-        ++iter_;
-      }
-
-      if (*iter_ == ',')
+      if (type == TokenType::kNone && *iter_ == '\0')
       {
         type = TokenType::kOperand;
-      }
-      else if (type == TokenType::kNone)
-      {
-        type = TokenType::kInstruction;
       }
     }
 

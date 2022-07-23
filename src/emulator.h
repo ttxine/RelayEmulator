@@ -5,7 +5,6 @@ namespace relay
 {
   class Emulator {
     public:
-      Emulator(const std::string& program_path, bool debug = false);
       Emulator(const std::string& program_path, uint8_t* input,
                bool debug = false);
       ~Emulator();

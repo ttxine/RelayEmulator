@@ -1,5 +1,4 @@
 #include <fstream>
-#include <iostream>
 #include <algorithm>
 #include <unistd.h>
 
@@ -11,7 +10,7 @@ std::string Compiler::Run()
 
   if (in.fail())
   {
-    throw std::runtime_error("Can't open a file: \"" + to_compile_ + '"');
+    throw std::runtime_error("can't open a file: \"" + to_compile_ + '"');
   }
 
   std::string out_path = "/tmp/RelayEmulatorCompiler~XXXXXX";
@@ -21,23 +20,11 @@ std::string Compiler::Run()
 
   while (std::getline(in, line))
   {
-    try
-    {
-      uint16_t icode = EncodeInstruction(line);
+    uint16_t icode = EncodeInstruction(line);
 
-      uint8_t buf[2] = { static_cast<uint8_t>(icode >> 8),
-                         static_cast<uint8_t>(icode) };
-
-      ::write(out_fd, buf, sizeof(buf));
-    }
-    catch (CompilerException& e)
-    {
-      ::unlink(out_path.c_str());
-      ::close(out_fd);
-  
-      std::cout << e.what() << " at line: \"" << line << "\"." << std::endl;
-      ::exit(1);
-    }
+    uint8_t buf[2] = { static_cast<uint8_t>(icode >> 8),
+                      static_cast<uint8_t>(icode) };
+    ::write(out_fd, buf, sizeof(buf));
   }
 
   return out_path;
@@ -275,19 +262,18 @@ uint16_t Compiler::EncodeBinaryAluInstruction(
   else if (operation.str == "xor") icode |= 6 << 11;
   else throw InvalidInstructionException();
 
-  if (Gd.str != "F")
+  if (Gd.str != "f")
     icode |= (GetRegisterCode(Gd.str) << 8) | 0x0008;
   
   icode |= GetRegisterCode(Gs.str) << 4;
 
   if (::isdigit(Op2.str[0]))
-  try
-  {
-    icode |= GetRegisterCode(Op2.str);
-  }
-  catch (CompilerException& e)
   {
     icode |= (ImmStringToInt(Op2.str) & 0x07) | 0x0080;
+  }
+  else
+  {
+    icode |= GetRegisterCode(Op2.str);
   }
 
   return icode;
@@ -311,7 +297,7 @@ uint16_t Compiler::EncodeUnaryAluInstruction(
   else if (operation.str == "rcr") icode |= 3 << 1;
   else throw InvalidInstructionException();
   
-  if (Gd.str != "F")
+  if (Gd.str != "f")
     icode |= (GetRegisterCode(Gd.str)) << 8 | 0x08;
 
   icode |= GetRegisterCode(Gs.str) << 4;
@@ -329,7 +315,7 @@ uint8_t Compiler::GetRegisterCode(const std::string& name)
   else if (name == "s") return 5;
   else if (name == "l") return 6;
   else if (name == "pc") return 7;
-  throw CompilerException("Invalid register");
+  throw CompilerException("invalid register");
 }
 
 uint8_t Compiler::GetConditionCode(const std::string& name)
@@ -341,7 +327,7 @@ uint8_t Compiler::GetConditionCode(const std::string& name)
   else if (name == "nc") return 4;
   else if (name == "s") return 5;
   else if (name == "nz") return 6;
-  throw CompilerException("Invalid condition");
+  throw CompilerException("invalid condition");
 }
 
 inline uint8_t Compiler::ImmStringToInt(const std::string& Imm)
@@ -350,8 +336,9 @@ inline uint8_t Compiler::ImmStringToInt(const std::string& Imm)
   {
     return std::stoi(Imm, nullptr, 16);
   }
-  else
+  else if (::isdigit(Imm[1]))
   {
     return std::stoi(Imm, nullptr, 10);
   }
+  throw CompilerException("invalid immediate value");
 }
