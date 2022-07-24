@@ -1,8 +1,9 @@
 #include <iostream>
 #include <unistd.h>
 
-#include "src/compiler.h"
-#include "src/emulator.h"
+#include "core/emulator.h"
+#include "compiler/compiler.h"
+#include "utils/utils.h"
 
 int main(int argc, char* argv[]) {
   std::string program_path;
@@ -11,12 +12,13 @@ int main(int argc, char* argv[]) {
   int input_count = 0;
 
   bool debug = false;
+  bool is_asm = false;
 
   std::string help_message = "Usage: " + std::string(argv[0])\
     + " [OPTION] [FILE]";
 
   char option;
-  while ((option = ::getopt(argc, argv, "s:i:d")) != -1)
+  while ((option = getopt(argc, argv, "s:i:d")) != -1)
   {
     switch (option)
     {
@@ -26,11 +28,13 @@ int main(int argc, char* argv[]) {
         {
           Compiler cmp(optarg);
           program_path = cmp.Run();
+
+          is_asm = true;
         }
         catch (const std::runtime_error& e)
         {
           std::cerr << argv[0] << ": compiler: " << e.what() << std::endl;
-          ::exit(EXIT_FAILURE);
+          exit(EXIT_FAILURE);
         }
         break;
       }
@@ -44,7 +48,7 @@ int main(int argc, char* argv[]) {
         else
         {
           std::cerr << help_message << std::endl;
-          ::exit(EXIT_FAILURE);
+          exit(EXIT_FAILURE);
         }
         break;
       }
@@ -56,11 +60,11 @@ int main(int argc, char* argv[]) {
       case '?':
       {
         std::cerr << help_message << std::endl;
-        ::exit(EXIT_FAILURE);
+        exit(EXIT_FAILURE);
       }
       default:
       {
-        ::abort();
+        abort();
       }
     }
   }
@@ -74,19 +78,31 @@ int main(int argc, char* argv[]) {
     else
     {
       std::cerr << help_message << std::endl;
-      ::exit(EXIT_FAILURE);
+      exit(EXIT_FAILURE);
     }
   }
 
   try
   {
-    relay::Emulator emu(program_path, input, debug);
+    Emulator emu(program_path, input, debug);
     emu.Run();
   }
   catch(const std::runtime_error& e)
   {
     std::cerr << argv[0] << ": emulator: " << e.what() << std::endl;
-    ::exit(EXIT_FAILURE);
+    exit(EXIT_FAILURE);
+  }
+
+  if (is_asm)
+  {
+    try {
+      unlink_temporary_file(program_path);
+    }
+    catch (const std::runtime_error& e)
+    {
+      std::cerr << argv[0] << ": " << e.what() << std::endl;
+      exit(EXIT_FAILURE);
+    }
   }
 
   return 0;

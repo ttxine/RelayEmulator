@@ -3,7 +3,7 @@
 #include <cstdint>
 #include <stdexcept>
 
-#include "src/token.h"
+#include "compiler/token.h"
 
 class Compiler
 {
@@ -55,43 +55,40 @@ class Compiler
 
     uint16_t EncodeNopInstruction();
 
-    uint16_t EncodeLoadInstruction(token::TokenLine::Token& G,
-                                   token::TokenLine::Token& P);
+    uint16_t EncodeLoadInstruction(TokenLine::Token& G, TokenLine::Token& P);
 
-    uint16_t EncodeStoreInstruction(token::TokenLine::Token& G,
-                                    token::TokenLine::Token& P);
+    uint16_t EncodeStoreInstruction(TokenLine::Token& G, TokenLine::Token& P);
 
-    uint16_t EncodeCallInstruction(token::TokenLine::Token& cond,
-                                   token::TokenLine::Token& Imm);
+    uint16_t EncodeCallInstruction(TokenLine::Token& cond,
+                                   TokenLine::Token& Imm);
 
-    uint16_t EncodeJmpInstruction(token::TokenLine::Token& cond,
-                                  token::TokenLine::Token& Imm);
+    uint16_t EncodeJmpInstruction(TokenLine::Token& cond,
+                                  TokenLine::Token& Imm);
 
     uint16_t EncodeMoviInstruction(
-        token::TokenLine::Token& cond,
-        token::TokenLine::Token& Gd, 
-        token::TokenLine::Token& Imm);
+        TokenLine::Token& cond,
+        TokenLine::Token& Gd, 
+        TokenLine::Token& Imm);
 
-    uint16_t EncodeMovInstruction(token::TokenLine::Token& Gd,
-                                  token::TokenLine::Token& Gs);
+    uint16_t EncodeMovInstruction(TokenLine::Token& Gd, TokenLine::Token& Gs);
 
     uint16_t EncodeAluInstruction(
-        token::TokenLine::Token& operation,
-        token::TokenLine::Token& Gd,
-        token::TokenLine::Token& Gs,
-        token::TokenLine::Token& Op2);
+        TokenLine::Token& operation,
+        TokenLine::Token& Gd,
+        TokenLine::Token& Gs,
+        TokenLine::Token& Op2);
 
   private:
     uint16_t EncodeBinaryAluInstruction(
-        token::TokenLine::Token& operation,
-        token::TokenLine::Token& Gd,
-        token::TokenLine::Token& Gs,
-        token::TokenLine::Token& Op2);
+        TokenLine::Token& operation,
+        TokenLine::Token& Gd,
+        TokenLine::Token& Gs,
+        TokenLine::Token& Op2);
 
     uint16_t EncodeUnaryAluInstruction(
-        token::TokenLine::Token& operation,
-        token::TokenLine::Token& Gd,
-        token::TokenLine::Token& Gs);
+        TokenLine::Token& operation,
+        TokenLine::Token& Gd,
+        TokenLine::Token& Gs);
 
   private:
     std::string to_compile_;

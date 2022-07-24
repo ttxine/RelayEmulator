@@ -1,42 +1,44 @@
 #include <fstream>
-#include <algorithm>
-#include <unistd.h>
 
-#include "src/compiler.h"
+#include "utils/utils.h"
+#include "compiler/compiler.h"
+#include "compiler/preprocessor.h"
 
 std::string Compiler::Run()
 {
-  std::ifstream in(to_compile_);
+  Preprocessor prep(to_compile_);
+  to_compile_ = prep.Run();
 
+  std::ifstream in(to_compile_);
   if (in.fail())
   {
     throw std::runtime_error("can't open a file: \"" + to_compile_ + '"');
   }
 
-  std::string out_path = "/tmp/RelayEmulatorCompiler~XXXXXX";
-  int out_fd = mkstemp(&out_path[0]);
+  std::string path = create_temporary_file();
+  std::ofstream out(path);
 
   std::string line;
-
   while (std::getline(in, line))
   {
     uint16_t icode = EncodeInstruction(line);
+    out << static_cast<uint8_t>(icode >> 8) << static_cast<uint8_t>(icode);
 
-    uint8_t buf[2] = { static_cast<uint8_t>(icode >> 8),
-                      static_cast<uint8_t>(icode) };
-    ::write(out_fd, buf, sizeof(buf));
+    // std::cout << line << std::hex << icode << std::endl;
   }
 
-  return out_path;
+  unlink_temporary_file(to_compile_);
+
+  return path;
 }
 
 uint16_t Compiler::EncodeInstruction(const std::string& instruction)
 {
-  token::TokenLine tline(token::strtolower(instruction));
+  TokenLine tline(strtolower(instruction));
 
-  token::TokenLine::Token itoken = tline.GetNextToken();
+  TokenLine::Token itoken = tline.GetNextToken();
 
-  if (!token::is_intruction(itoken))
+  if (!is_instruction(itoken))
   {
     throw InvalidInstructionException();
   }
@@ -51,52 +53,52 @@ uint16_t Compiler::EncodeInstruction(const std::string& instruction)
   }
   else if (itoken.str == "load")
   {
-    token::TokenLine::Token G = tline.GetNextToken();
-    token::TokenLine::Token P = tline.GetNextToken();
+    TokenLine::Token G = tline.GetNextToken();
+    TokenLine::Token P = tline.GetNextToken();
 
     return EncodeLoadInstruction(G, P);
   }
   else if (itoken.str == "store")
   {
-    token::TokenLine::Token G = tline.GetNextToken();
-    token::TokenLine::Token P = tline.GetNextToken();
+    TokenLine::Token G = tline.GetNextToken();
+    TokenLine::Token P = tline.GetNextToken();
 
     return EncodeStoreInstruction(G, P);
   }
   else if (itoken.str == "call")
   {
-    token::TokenLine::Token cond = tline.GetNextToken();
-    token::TokenLine::Token Imm = tline.GetNextToken();
+    TokenLine::Token cond = tline.GetNextToken();
+    TokenLine::Token Imm = tline.GetNextToken();
 
     return EncodeCallInstruction(cond, Imm);
   }
   else if (itoken.str == "jmp")
   {
-    token::TokenLine::Token cond = tline.GetNextToken();
-    token::TokenLine::Token Imm = tline.GetNextToken();
+    TokenLine::Token cond = tline.GetNextToken();
+    TokenLine::Token Imm = tline.GetNextToken();
 
     return EncodeJmpInstruction(cond, Imm);
   }
   else if (itoken.str == "movi")
   {
-    token::TokenLine::Token cond = tline.GetNextToken();
-    token::TokenLine::Token Gd = tline.GetNextToken();
-    token::TokenLine::Token Imm = tline.GetNextToken();
+    TokenLine::Token cond = tline.GetNextToken();
+    TokenLine::Token Gd = tline.GetNextToken();
+    TokenLine::Token Imm = tline.GetNextToken();
 
     return EncodeMoviInstruction(cond, Gd, Imm);
   }
   else if (itoken.str == "mov")
   {
-    token::TokenLine::Token Gd = tline.GetNextToken();
-    token::TokenLine::Token Gs = tline.GetNextToken();
+    TokenLine::Token Gd = tline.GetNextToken();
+    TokenLine::Token Gs = tline.GetNextToken();
 
     return EncodeMovInstruction(Gd, Gs);
   }
   else
   {
-    token::TokenLine::Token Gd = tline.GetNextToken();
-    token::TokenLine::Token Gs = tline.GetNextToken();
-    token::TokenLine::Token Op2 = tline.GetNextToken();
+    TokenLine::Token Gd = tline.GetNextToken();
+    TokenLine::Token Gs = tline.GetNextToken();
+    TokenLine::Token Op2 = tline.GetNextToken();
 
     return EncodeAluInstruction(itoken, Gd, Gs, Op2);
   }
@@ -112,10 +114,10 @@ uint16_t Compiler::EncodeNopInstruction()
   return 0x0000;
 }
 
-uint16_t Compiler::EncodeLoadInstruction(token::TokenLine::Token& G,
-                                         token::TokenLine::Token& P)
+uint16_t Compiler::EncodeLoadInstruction(TokenLine::Token& G,
+                                         TokenLine::Token& P)
 {
-  if (!token::is_operand(G) || !token::is_operand(G))
+  if (!is_operand(G) || !is_operand(G))
   {
     throw InvalidOperandException();
   }
@@ -130,10 +132,10 @@ uint16_t Compiler::EncodeLoadInstruction(token::TokenLine::Token& G,
   }
 }
 
-uint16_t Compiler::EncodeStoreInstruction(token::TokenLine::Token& G,
-                                          token::TokenLine::Token& P)
+uint16_t Compiler::EncodeStoreInstruction(TokenLine::Token& G,
+                                          TokenLine::Token& P)
 {
-  if (!token::is_operand(G) || !token::is_operand(G))
+  if (!is_operand(G) || !is_operand(G))
   {
     throw InvalidOperandException();
   }
@@ -148,20 +150,20 @@ uint16_t Compiler::EncodeStoreInstruction(token::TokenLine::Token& G,
   }
 }
 
-uint16_t Compiler::EncodeCallInstruction(token::TokenLine::Token& cond,
-                                         token::TokenLine::Token& Imm)
+uint16_t Compiler::EncodeCallInstruction(TokenLine::Token& cond,
+                                         TokenLine::Token& Imm)
 {
-  if (!token::is_operand(cond))
+  if (!is_operand(cond))
   {
     throw InvalidOperandException();
   }
 
-  if (token::is_none(Imm))
+  if (is_none(Imm))
   {
     return 0x8F00 | ImmStringToInt(cond.str);
   }
 
-  if (!token::is_operand(Imm))
+  if (!is_operand(Imm))
   {
     throw InvalidOperandException();
   }
@@ -169,20 +171,20 @@ uint16_t Compiler::EncodeCallInstruction(token::TokenLine::Token& cond,
   return 0x8F00 | GetConditionCode(cond.str) << 12 | ImmStringToInt(Imm.str);
 }
 
-uint16_t Compiler::EncodeJmpInstruction(token::TokenLine::Token& cond,
-                                        token::TokenLine::Token& Imm)
+uint16_t Compiler::EncodeJmpInstruction(TokenLine::Token& cond,
+                                        TokenLine::Token& Imm)
 {
-  if (!token::is_operand(cond))
+  if (!is_operand(cond))
   {
     throw InvalidOperandException();
   }
 
-  if (token::is_none(Imm))
+  if (is_none(Imm))
   {
     return 0x8700 | ImmStringToInt(cond.str);
   }
 
-  if (!token::is_operand(Imm))
+  if (!is_operand(Imm))
   {
     throw InvalidOperandException();
   }
@@ -191,21 +193,21 @@ uint16_t Compiler::EncodeJmpInstruction(token::TokenLine::Token& cond,
 }
 
 uint16_t Compiler::EncodeMoviInstruction(
-    token::TokenLine::Token& cond,
-    token::TokenLine::Token& Gd, 
-    token::TokenLine::Token& Imm)
+    TokenLine::Token& cond,
+    TokenLine::Token& Gd, 
+    TokenLine::Token& Imm)
 {
-  if (!token::is_operand(cond) || !token::is_operand(Gd))
+  if (!is_operand(cond) || !is_operand(Gd))
   {
     throw InvalidInstructionException();
   }
 
-  if (token::is_none(Imm))
+  if (is_none(Imm))
   {
     return 0x8000 | GetRegisterCode(cond.str) << 8 | ImmStringToInt(Gd.str);
   }
 
-  if (!token::is_operand(Imm))
+  if (!is_operand(Imm))
   {
     throw InvalidOperandException();
   }
@@ -214,10 +216,10 @@ uint16_t Compiler::EncodeMoviInstruction(
           | GetRegisterCode(Gd.str) << 8 | ImmStringToInt(Imm.str);
 }
 
-uint16_t Compiler::EncodeMovInstruction(token::TokenLine::Token& Gd,
-                                        token::TokenLine::Token& Gs)
+uint16_t Compiler::EncodeMovInstruction(TokenLine::Token& Gd,
+                                        TokenLine::Token& Gs)
 {
-  if (!token::is_operand(Gd) || !token::is_operand(Gs))
+  if (!is_operand(Gd) || !is_operand(Gs))
   {
     throw InvalidInstructionException();
   }
@@ -226,12 +228,12 @@ uint16_t Compiler::EncodeMovInstruction(token::TokenLine::Token& Gd,
 }
 
 uint16_t Compiler::EncodeAluInstruction(
-    token::TokenLine::Token& operation,
-    token::TokenLine::Token& Gd,
-    token::TokenLine::Token& Gs,
-    token::TokenLine::Token& Op2)
+    TokenLine::Token& operation,
+    TokenLine::Token& Gd,
+    TokenLine::Token& Gs,
+    TokenLine::Token& Op2)
 {
-  if (token::is_none(Op2))
+  if (is_none(Op2))
   {
     return EncodeUnaryAluInstruction(operation, Gd, Gs);
   }
@@ -240,13 +242,13 @@ uint16_t Compiler::EncodeAluInstruction(
 }
 
 uint16_t Compiler::EncodeBinaryAluInstruction(
-    token::TokenLine::Token& operation,
-    token::TokenLine::Token& Gd,
-    token::TokenLine::Token& Gs,
-    token::TokenLine::Token& Op2)
+    TokenLine::Token& operation,
+    TokenLine::Token& Gd,
+    TokenLine::Token& Gs,
+    TokenLine::Token& Op2)
 {
-  if (!token::is_operand(Gd) || !token::is_operand(Gs)
-      || !token::is_operand(Op2))
+  if (!is_operand(Gd) || !is_operand(Gs)
+      || !is_operand(Op2))
   {
     throw InvalidInstructionException();
   }
@@ -280,11 +282,11 @@ uint16_t Compiler::EncodeBinaryAluInstruction(
 }
 
 uint16_t Compiler::EncodeUnaryAluInstruction(
-    token::TokenLine::Token& operation,
-    token::TokenLine::Token& Gd,
-    token::TokenLine::Token& Gs)
+    TokenLine::Token& operation,
+    TokenLine::Token& Gd,
+    TokenLine::Token& Gs)
 {
-  if (!token::is_operand(Gd) || !token::is_operand(Gs))
+  if (!is_operand(Gd) || !is_operand(Gs))
   {
     throw InvalidInstructionException();
   }
@@ -336,7 +338,7 @@ inline uint8_t Compiler::ImmStringToInt(const std::string& Imm)
   {
     return std::stoi(Imm, nullptr, 16);
   }
-  else if (::isdigit(Imm[1]))
+  else if (strisdigit(Imm))
   {
     return std::stoi(Imm, nullptr, 10);
   }
