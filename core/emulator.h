@@ -4,7 +4,7 @@
 class Emulator {
   public:
     Emulator(const std::string& program_path, uint8_t* input,
-              bool debug = false);
+             bool debug = false);
     ~Emulator();
 
   public:

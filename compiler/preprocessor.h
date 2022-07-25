@@ -1,19 +1,19 @@
 #include <string>
-#include <iostream>
 #include <unordered_map>
 
 class Preprocessor
 {
   public:
     Preprocessor(const std::string& program_name)
-    : to_preprocess_(program_name)
+        : to_preprocess_(program_name)
     {
     }
 
   public:
     std::string Run();
-    void CollectLabels(std::ifstream& in);
-    std::string HandleLine(const std::string& line);
+    void InitialPreprocess(std::ifstream& in, std::fstream& out);
+    void HandleDirectives(std::fstream& in);
+    void PerformSubstitutions(std::fstream& in, std::ofstream& out);
 
   private:
     std::string to_preprocess_;

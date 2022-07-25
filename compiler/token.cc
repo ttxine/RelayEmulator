@@ -4,52 +4,62 @@
 
 TokenLine::Token TokenLine::GetNextToken()
 {
-  std::string::const_iterator token_begin;
   TokenType type = TokenType::kNone;
 
-  if (iter_ == line_.begin())
+  if (last_token_end_ == line_.begin())
   {
     type = TokenType::kInstruction;
   }
 
-  while (std::isspace(*iter_) || *iter_ == ',')
+  while (std::isspace(*last_token_end_) || *last_token_end_ == ',')
   {
-    if (*iter_ == ',')
+    if (*last_token_end_ == ',')
     {
       type = TokenType::kOperand;
     }
-    ++iter_;
+    ++last_token_end_;
   }
-  token_begin = iter_;
+  last_token_begin_ = last_token_end_;
 
-  while (*iter_ != '\0' && !std::isspace(*iter_) && *iter_ != ','
-         && *iter_ != ':')
+  if (*last_token_end_ == ';')
   {
-    ++iter_;
+    last_token_end_ = line_.end();
+    return { std::string(last_token_begin_, last_token_end_),
+             TokenType::kComment };
   }
 
-  std::string token(token_begin, iter_);
-
-  while (std::isspace(*iter_))
+  while (*last_token_end_ != '\0' && !std::isspace(*last_token_end_)
+         && *last_token_end_ != ',' && *last_token_end_ != ':')
   {
-    ++iter_;
+    ++last_token_end_;
   }
 
-  if (*iter_ == ':')
+  std::string token(last_token_begin_, last_token_end_);
+
+  while (std::isspace(*last_token_end_))
+  {
+    ++last_token_end_;
+  }
+
+  if (*last_token_end_ == ':')
   {
     type = TokenType::kLabel;
-    ++iter_;
+    ++last_token_end_;
   }
   else if (token.length() && type == TokenType::kNone)
   {
-    if (*iter_ == ',')
+    if (*last_token_end_ == ',')
     {
       type = TokenType::kOperand;
     }
-    else if (*iter_ == '\0')
+    else if (*last_token_end_ == '\0')
     {
       type = TokenType::kOperand;
     }
+  }
+  else if (token.empty() && type == TokenType::kInstruction)
+  {
+    type = TokenType::kNone;
   }
 
   return { token, type };

@@ -42,3 +42,16 @@ void unlink_temporary_file(const std::string& path)
     throw std::runtime_error("can't unlink a file: \"" + path + '"');
   }
 }
+
+uint8_t asm_stoi(const std::string& Imm)
+{
+  if (!Imm.compare(0, 2, "0x"))
+  {
+    return std::stoi(Imm, nullptr, 16);
+  }
+  else if (strisdigit(Imm))
+  {
+    return std::stoi(Imm, nullptr, 10);
+  }
+  throw std::runtime_error("invalid immediate value");
+}

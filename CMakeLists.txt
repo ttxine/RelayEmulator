@@ -13,6 +13,7 @@ set(SOURCES
     core/emulator.cc
     compiler/token.cc
     compiler/preprocessor.cc
+    compiler/assembler.cc
     compiler/compiler.cc
     utils/utils.cc)
 
