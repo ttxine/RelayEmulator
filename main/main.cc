@@ -2,12 +2,27 @@
 #include <unistd.h>
 
 #include "core/emulator.h"
-#include "compiler/compiler.h"
-#include "utils/utils.h"
+#include "compiler/run.h"
+#include "utils/tempfile.h"
+
+void clear(const std::string& prog, const std::string& executable_path,
+           bool is_asm)
+{
+  if (is_asm)
+  {
+    try
+    {
+      unlink_temporary_file(executable_path);
+    }
+    catch (const std::runtime_error& e)
+    {
+      std::cerr << prog << "error: " << e.what() << std::endl;
+      exit(EXIT_FAILURE);
+    }
+  }
+}
 
 int main(int argc, char* argv[]) {
-  std::string program_path;
-
   uint8_t input[2];
   int input_count = 0;
 
@@ -18,7 +33,7 @@ int main(int argc, char* argv[]) {
     + " [OPTION] [FILE]";
 
   char option;
-  while ((option = getopt(argc, argv, "s:i:d")) != -1)
+  while ((option = getopt(argc, argv, "si:d")) != -1)
   {
     switch (option)
     {
@@ -26,14 +41,12 @@ int main(int argc, char* argv[]) {
       {
         try
         {
-          Compiler cmp(optarg);
-          program_path = cmp.Run();
-
           is_asm = true;
         }
         catch (const std::runtime_error& e)
         {
-          std::cerr << argv[0] << ": compiler: " << e.what() << std::endl;
+          std::cerr << argv[0] << ": error: compiler: " << e.what()
+                    << std::endl;
           exit(EXIT_FAILURE);
         }
         break;
@@ -69,41 +82,43 @@ int main(int argc, char* argv[]) {
     }
   }
 
-  if (program_path.empty())
-  {
-    if (optind < argc)
-    {
-      program_path = argv[optind];
-    }
-    else
-    {
-      std::cerr << help_message << std::endl;
-      exit(EXIT_FAILURE);
-    }
-  }
-
-  try
-  {
-    Emulator emu(program_path, input, debug);
-    emu.Run();
-  }
-  catch(const std::runtime_error& e)
-  {
-    std::cerr << argv[0] << ": emulator: " << e.what() << std::endl;
-    exit(EXIT_FAILURE);
-  }
-
+  std::string executable_path;
   if (is_asm)
   {
-    try {
-      unlink_temporary_file(program_path);
+    try
+    {
+      executable_path = run_compiler(argv[optind]);
     }
     catch (const std::runtime_error& e)
     {
       std::cerr << argv[0] << ": " << e.what() << std::endl;
-      exit(EXIT_FAILURE);
+      std::exit(EXIT_FAILURE);
     }
   }
+  else if (optind < argc)
+  {
+    executable_path = argv[optind];
+  }
+  else
+  {
+    std::cerr << help_message << std::endl;
+    exit(EXIT_FAILURE);
+  }
+
+  try
+  {
+    Emulator emu(executable_path, input, debug);
+    emu.Run();
+  }
+  catch(const std::runtime_error& e)
+  {
+    std::cerr << argv[0] << ": error: emulator: " << e.what() << std::endl;
+
+    clear(argv[0], executable_path, is_asm);
+    exit(EXIT_FAILURE);
+  }
+
+  clear(argv[0], executable_path, is_asm);
 
   return 0;
 }
