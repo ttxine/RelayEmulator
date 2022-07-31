@@ -7,9 +7,9 @@
 class Compiler
 {
   public:
-    Compiler(const Root& root,
+    Compiler(std::unique_ptr<Root>& root,
              const std::unordered_map<std::string, int>& labels)
-        : root_(root), labels_(labels)
+        : root_(std::move(root)), labels_(labels)
     {
     }
 
@@ -68,6 +68,6 @@ class Compiler
     uint16_t AssembleUnaryALU(const InstructionNode& node, uint8_t code) const;
 
   private:
-    Root root_;
+    std::unique_ptr<Root> root_;
     std::unordered_map<std::string, int> labels_;
 };

@@ -23,10 +23,10 @@ struct OperandNode : public Node
 
 struct InstructionNode : public Node
 {
-  std::vector<std::shared_ptr<OperandNode>> operands;
+  std::vector<std::unique_ptr<OperandNode>> operands;
 };
 
 struct Root
 {
-  std::vector<std::shared_ptr<Node>> nodes;
+  std::vector<std::unique_ptr<Node>> nodes;
 };

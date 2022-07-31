@@ -30,7 +30,7 @@ std::string run_compiler(const std::string& path)
     std::exit(EXIT_FAILURE);
   }
 
-  Root root;
+  std::unique_ptr<Root> root;
   std::unordered_map<std::string, int> labels;
   try
   {

@@ -11,19 +11,19 @@ Parser::Parser(std::vector<std::pair<Token, std::string>> tokens)
   InitializeInstructions();
 }
 
-Root Parser::Parse()
+std::unique_ptr<Root> Parser::Parse()
 {
-  Root root;
+  std::unique_ptr<Root> root(new Root);
 
   while (cur_token_ < tokens_.end())
   {
-    root.nodes.push_back(ParseNextNode());
+    root->nodes.push_back(ParseNextNode());
   }
 
   return root;
 }
 
-std::shared_ptr<Node> Parser::ParseNextNode()
+std::unique_ptr<Node> Parser::ParseNextNode()
 {
   std::pair<Token, std::string> token = *cur_token_;
 
@@ -38,40 +38,34 @@ std::shared_ptr<Node> Parser::ParseNextNode()
   }
 }
 
-std::shared_ptr<LabelNode> Parser::ParseLabel()
+std::unique_ptr<LabelNode> Parser::ParseLabel()
 {
-  std::pair<Token, std::string> token = *cur_token_;
+  labels_[cur_token_->second] = cur_addr_;
 
-  labels_[token.second] = cur_addr_;
-
-  std::shared_ptr<LabelNode> label(new LabelNode);
-  label->str = token.second;
+  std::unique_ptr<LabelNode> label(new LabelNode);
+  label->str = cur_token_->second;
 
   ++cur_token_;
   return label;
 }
 
-std::shared_ptr<OperandNode> Parser::ParseOperand()
+std::unique_ptr<OperandNode> Parser::ParseOperand()
 {
-  std::pair<Token, std::string> token = *cur_token_;
-
-  std::shared_ptr<OperandNode> operand(new OperandNode);
-  operand->str = token.second;
-  operand->type = token.first;
+  std::unique_ptr<OperandNode> operand(new OperandNode);
+  operand->str = cur_token_->second;
+  operand->type = cur_token_->first;
 
   ++cur_token_;
   return operand;
 }
 
-std::shared_ptr<InstructionNode> Parser::ParseInstruction()
+std::unique_ptr<InstructionNode> Parser::ParseInstruction()
 {
-  std::pair<Token, std::string> token = *cur_token_;
+  std::unique_ptr<InstructionNode> instruction(new InstructionNode);
+  instruction->str = cur_token_->second;
+
   ++cur_token_;
-
-  std::shared_ptr<InstructionNode> instruction(new InstructionNode);
-  instruction->str = token.second;
-
-  switch (GetInstructionLength(token.second))
+  switch (GetInstructionLength(instruction->str))
   {
     case InstructionLength::kNoOperands:
     {
@@ -116,11 +110,11 @@ Parser::InstructionLength Parser::GetInstructionLength(
   throw std::runtime_error("invalid instruction");
 };
 
-std::vector<std::shared_ptr<OperandNode>> Parser::TakeTwoOperands()
+std::vector<std::unique_ptr<OperandNode>> Parser::TakeTwoOperands()
 {
-  std::vector<std::shared_ptr<OperandNode>> operands;
+  std::vector<std::unique_ptr<OperandNode>> operands;
 
-  if (IsOperand(GetCurrentToken().first))
+  if (IsTokenOperand(GetCurrentToken().first))
   {
     operands.push_back(ParseOperand());
   }
@@ -138,7 +132,7 @@ std::vector<std::shared_ptr<OperandNode>> Parser::TakeTwoOperands()
     throw std::runtime_error("comma expected");
   }
 
-  if (IsOperand(GetCurrentToken().first))
+  if (IsTokenOperand(GetCurrentToken().first))
   {
     operands.push_back(ParseOperand());
   }
@@ -150,11 +144,11 @@ std::vector<std::shared_ptr<OperandNode>> Parser::TakeTwoOperands()
   return operands;
 }
 
-std::vector<std::shared_ptr<OperandNode>> Parser::TakeThreeOperands()
+std::vector<std::unique_ptr<OperandNode>> Parser::TakeThreeOperands()
 {
-  std::vector<std::shared_ptr<OperandNode>> operands;
+  std::vector<std::unique_ptr<OperandNode>> operands;
 
-  if (IsOperand(GetCurrentToken().first))
+  if (IsTokenOperand(GetCurrentToken().first))
   {
     operands.push_back(ParseOperand());
   }
@@ -172,7 +166,7 @@ std::vector<std::shared_ptr<OperandNode>> Parser::TakeThreeOperands()
     throw std::runtime_error("comma expected");
   }
 
-  if (IsOperand(GetCurrentToken().first))
+  if (IsTokenOperand(GetCurrentToken().first))
   {
     operands.push_back(ParseOperand());
   }
@@ -190,7 +184,7 @@ std::vector<std::shared_ptr<OperandNode>> Parser::TakeThreeOperands()
     throw std::runtime_error("comma expected");
   }
 
-  if (IsOperand(GetCurrentToken().first))
+  if (IsTokenOperand(GetCurrentToken().first))
   {
     operands.push_back(ParseOperand());
   }
@@ -202,11 +196,11 @@ std::vector<std::shared_ptr<OperandNode>> Parser::TakeThreeOperands()
   return operands;
 }
 
-std::vector<std::shared_ptr<OperandNode>> Parser::TakeTwoOperandsOptional()
+std::vector<std::unique_ptr<OperandNode>> Parser::TakeTwoOperandsOptional()
 {
-  std::vector<std::shared_ptr<OperandNode>> operands;
+  std::vector<std::unique_ptr<OperandNode>> operands;
 
-  if (IsOperand(GetCurrentToken().first))
+  if (IsTokenOperand(GetCurrentToken().first))
   {
     operands.push_back(ParseOperand());
   }
@@ -224,7 +218,7 @@ std::vector<std::shared_ptr<OperandNode>> Parser::TakeTwoOperandsOptional()
     return operands;
   }
 
-  if (IsOperand(GetCurrentToken().first))
+  if (IsTokenOperand(GetCurrentToken().first))
   {
     operands.push_back(ParseOperand());
   }
@@ -236,11 +230,11 @@ std::vector<std::shared_ptr<OperandNode>> Parser::TakeTwoOperandsOptional()
   return operands;
 }
 
-std::vector<std::shared_ptr<OperandNode>> Parser::TakeThreeOperandsOptional()
+std::vector<std::unique_ptr<OperandNode>> Parser::TakeThreeOperandsOptional()
 {
-  std::vector<std::shared_ptr<OperandNode>> operands;
+  std::vector<std::unique_ptr<OperandNode>> operands;
 
-  if (IsOperand(GetCurrentToken().first))
+  if (IsTokenOperand(GetCurrentToken().first))
   {
     operands.push_back(ParseOperand());
   }
@@ -258,7 +252,7 @@ std::vector<std::shared_ptr<OperandNode>> Parser::TakeThreeOperandsOptional()
     throw std::runtime_error("comma expected");
   }
 
-  if (IsOperand(GetCurrentToken().first))
+  if (IsTokenOperand(GetCurrentToken().first))
   {
     operands.push_back(ParseOperand());
   }
@@ -276,7 +270,7 @@ std::vector<std::shared_ptr<OperandNode>> Parser::TakeThreeOperandsOptional()
     return operands;
   }
 
-  if (IsOperand(GetCurrentToken().first))
+  if (IsTokenOperand(GetCurrentToken().first))
   {
     operands.push_back(ParseOperand());
   }

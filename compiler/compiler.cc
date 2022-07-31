@@ -14,9 +14,9 @@ std::string Compiler::Compile() const
     throw std::runtime_error("can't open temporary file");
   }
 
-  for (std::shared_ptr<Node> node : root_.nodes)
+  for (std::unique_ptr<Node>& node : root_->nodes)
   {
-    if (auto inode = std::dynamic_pointer_cast<InstructionNode>(node))
+    if (InstructionNode* inode = dynamic_cast<InstructionNode*>(node.get()))
     {
       try
       {
@@ -30,7 +30,7 @@ std::string Compiler::Compile() const
         throw;
       }
     }
-    else if (!std::dynamic_pointer_cast<LabelNode>(node))
+    else if (!dynamic_cast<LabelNode*>(node.get()))
     {
       unlink_temporary_file(path);
       throw std::runtime_error("instruction or label expected");
@@ -302,23 +302,23 @@ uint16_t Compiler::AssembleJMP(const InstructionNode& node) const
 
 uint16_t Compiler::AssembleMOVI(const InstructionNode& node) const
 {
-  std::vector<std::shared_ptr<OperandNode>> operands = node.operands;
-
   const bool bNodeHasThreeOperands = node.operands.size() == 3;
 
-  if (bNodeHasThreeOperands && IsOperandCondition(*operands[0]) &&
-      IsOperandRegister(*operands[1]) && IsOperandNumerical(*operands[2]))
+  if (bNodeHasThreeOperands && IsOperandCondition(*node.operands[0]) &&
+      IsOperandRegister(*node.operands[1]) &&
+      IsOperandNumerical(*node.operands[2]))
   {
-    uint8_t Cond = GetConditionCode(operands[0]->str);
-    uint8_t Gd = GetRegisterCode(operands[1]->str);
-    uint8_t Imm = asm_stoi(operands[2]->str);
+    uint8_t Cond = GetConditionCode(node.operands[0]->str);
+    uint8_t Gd = GetRegisterCode(node.operands[1]->str);
+    uint8_t Imm = asm_stoi(node.operands[2]->str);
 
     return 0x8000 | Cond << 12 | Gd << 8 | Imm;
   }
-  else if (IsOperandRegister(*operands[0]) && IsOperandNumerical(*operands[1]))
+  else if (IsOperandRegister(*node.operands[0]) &&
+           IsOperandNumerical(*node.operands[1]))
   {
-    uint8_t Gd = GetRegisterCode(operands[1]->str);
-    uint8_t Imm = asm_stoi(operands[2]->str);
+    uint8_t Gd = GetRegisterCode(node.operands[1]->str);
+    uint8_t Imm = asm_stoi(node.operands[2]->str);
 
     return 0x8000 | Gd << 8 | Imm;
   }
