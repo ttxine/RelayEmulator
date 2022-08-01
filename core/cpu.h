@@ -1,4 +1,6 @@
 #pragma once
+#include <memory>
+
 #include "core/memory.h"
 
 class CPU {
@@ -34,13 +36,12 @@ class CPU {
     };
 
   public:
-    CPU(Memory* memory) : memory_(memory)
+    CPU(std::unique_ptr<Memory> memory) : memory_(std::move(memory))
     {
     }
-    ~CPU()
-    {
-      delete memory_;
-    }
+
+    CPU(const CPU&) = delete;
+    CPU& operator=(const CPU&) = delete;
 
   public:
     bool IsRunning() const
@@ -126,7 +127,9 @@ class CPU {
     uint8_t S_ = 0x00;
     uint8_t L_ = 0x00;
     uint8_t PC_ = 0x00;
-    Memory* memory_ = nullptr;
+
+    std::unique_ptr<Memory> memory_;
+
     bool sign_ = false;
     bool zero_ = false;
     bool carry_ = false;

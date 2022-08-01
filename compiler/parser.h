@@ -21,7 +21,7 @@ class Parser
     Parser(std::vector<std::pair<Token, std::string>> tokens);
 
   public:
-    std::unique_ptr<Root> Parse();
+    Root Parse();
 
     const std::unordered_map<std::string, int> GetLabels() const
     {
@@ -29,16 +29,16 @@ class Parser
     }
 
   private:
-    std::unique_ptr<Node> ParseNextNode();
-    std::unique_ptr<Node> ParseLabel();
-    std::unique_ptr<Node> ParseInstruction();
-    std::unique_ptr<Node> ParseOperand();
+    Node ParseNextNode();
+    Node ParseLabel();
+    Node ParseInstruction();
+    Node ParseOperand();
 
-    std::vector<std::unique_ptr<Node>> TakeOneOperand();
-    std::vector<std::unique_ptr<Node>> TakeTwoOperands();
-    std::vector<std::unique_ptr<Node>> TakeThreeOperands();
-    std::vector<std::unique_ptr<Node>> TakeTwoOperandsOptional();
-    std::vector<std::unique_ptr<Node>> TakeThreeOperandsOptional();
+    std::vector<Node> TakeOneOperand();
+    std::vector<Node> TakeTwoOperands();
+    std::vector<Node> TakeThreeOperands();
+    std::vector<Node> TakeTwoOperandsOptional();
+    std::vector<Node> TakeThreeOperandsOptional();
 
     void InitializeInstructions();
     InstructionLength GetInstructionLength(const std::string& instruction);

@@ -3,9 +3,12 @@
 
 class Emulator {
   public:
+    Emulator(const std::string& program_path, uint8_t* input);
     Emulator(const std::string& program_path, uint8_t* input,
-             bool debug = false);
-    ~Emulator();
+             bool debug);
+
+    Emulator(const Emulator&) = delete;
+    Emulator& operator=(const Emulator&) = delete;
 
   public:
     void Run();
@@ -16,5 +19,5 @@ class Emulator {
     bool debug_ = false;
 
   private:
-    CPU* cpu_ = nullptr;
+    std::unique_ptr<CPU> cpu_;
 };

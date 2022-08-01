@@ -11,19 +11,19 @@ Parser::Parser(std::vector<std::pair<Token, std::string>> tokens)
   InitializeInstructions();
 }
 
-std::unique_ptr<Root> Parser::Parse()
+Root Parser::Parse()
 {
-  std::unique_ptr<Root> root(new Root);
+  Root root;
 
   while (cur_token_ < tokens_.end())
   {
-    root->AddSubNodes(ParseNextNode());
+    root.AddSubNodes(ParseNextNode());
   }
 
   return root;
 }
 
-std::unique_ptr<Node> Parser::ParseNextNode()
+Node Parser::ParseNextNode()
 {
   switch (cur_token_->first)
   {
@@ -36,31 +36,29 @@ std::unique_ptr<Node> Parser::ParseNextNode()
   }
 }
 
-std::unique_ptr<Node> Parser::ParseLabel()
+Node Parser::ParseLabel()
 {
   labels_[cur_token_->second] = cur_addr_;
-  std::unique_ptr<Node> label(new Node(Token::kLabel, cur_token_->second));
+  Node label(Token::kLabel, cur_token_->second);
 
   ++cur_token_;
   return label;
 }
 
-std::unique_ptr<Node> Parser::ParseOperand()
+Node Parser::ParseOperand()
 {
-  std::unique_ptr<Node> operand(
-      new Node(cur_token_->first, cur_token_->second));
+  Node operand(cur_token_->first, cur_token_->second);
 
   ++cur_token_;
   return operand;
 }
 
-std::unique_ptr<Node> Parser::ParseInstruction()
+Node Parser::ParseInstruction()
 {
-  std::unique_ptr<Node> instruction(new Node(Token::kInstruction,
-                                             cur_token_->second));
+  Node instruction(Token::kInstruction, cur_token_->second);
 
   ++cur_token_;
-  switch (GetInstructionLength(instruction->GetString()))
+  switch (GetInstructionLength(instruction.GetString()))
   {
     case InstructionLength::kNoOperands:
     {
@@ -68,22 +66,22 @@ std::unique_ptr<Node> Parser::ParseInstruction()
     }
     case InstructionLength::kTwoOperands:
     {
-      instruction->SetSubNodes(TakeTwoOperands());
+      instruction.SetSubNodes(TakeTwoOperands());
       break;
     }
     case InstructionLength::kThreeOperands:
     {
-      instruction->SetSubNodes(TakeThreeOperands());
+      instruction.SetSubNodes(TakeThreeOperands());
       break;
     }
     case InstructionLength::kTwoOperandsOptional:
     {
-      instruction->SetSubNodes(TakeTwoOperandsOptional());
+      instruction.SetSubNodes(TakeTwoOperandsOptional());
       break;
     }
     case InstructionLength::kThreeOperandsOptional:
     {
-      instruction->SetSubNodes(TakeThreeOperandsOptional());
+      instruction.SetSubNodes(TakeThreeOperandsOptional());
       break;
     }
   }
@@ -105,9 +103,9 @@ Parser::InstructionLength Parser::GetInstructionLength(
   throw std::runtime_error("invalid instruction");
 };
 
-std::vector<std::unique_ptr<Node>> Parser::TakeTwoOperands()
+std::vector<Node> Parser::TakeTwoOperands()
 {
-  std::vector<std::unique_ptr<Node>> operands;
+  std::vector<Node> operands;
 
   if (IsTokenOperand(GetCurrentToken().first))
   {
@@ -139,9 +137,9 @@ std::vector<std::unique_ptr<Node>> Parser::TakeTwoOperands()
   return operands;
 }
 
-std::vector<std::unique_ptr<Node>> Parser::TakeThreeOperands()
+std::vector<Node> Parser::TakeThreeOperands()
 {
-  std::vector<std::unique_ptr<Node>> operands;
+  std::vector<Node> operands;
 
   if (IsTokenOperand(GetCurrentToken().first))
   {
@@ -191,9 +189,9 @@ std::vector<std::unique_ptr<Node>> Parser::TakeThreeOperands()
   return operands;
 }
 
-std::vector<std::unique_ptr<Node>> Parser::TakeTwoOperandsOptional()
+std::vector<Node> Parser::TakeTwoOperandsOptional()
 {
-  std::vector<std::unique_ptr<Node>> operands;
+  std::vector<Node> operands;
 
   if (IsTokenOperand(GetCurrentToken().first))
   {
@@ -225,9 +223,9 @@ std::vector<std::unique_ptr<Node>> Parser::TakeTwoOperandsOptional()
   return operands;
 }
 
-std::vector<std::unique_ptr<Node>> Parser::TakeThreeOperandsOptional()
+std::vector<Node> Parser::TakeThreeOperandsOptional()
 {
-  std::vector<std::unique_ptr<Node>> operands;
+  std::vector<Node> operands;
 
   if (IsTokenOperand(GetCurrentToken().first))
   {

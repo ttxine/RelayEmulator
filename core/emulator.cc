@@ -1,4 +1,5 @@
 #include <bitset>
+#include <memory>
 #include <iostream>
 
 #include "core/emulator.h"
@@ -13,14 +14,16 @@ Emulator::Emulator(const std::string& program_path, uint8_t* input,
     throw std::runtime_error("Can't open a file");
   }
 
-  Memory* memory = new Memory(program, input);
-  cpu_ = new CPU(memory);
+  std::unique_ptr<Memory> memory(new Memory(program, input));
+  std::unique_ptr<CPU> cpu(new CPU(std::move(memory)));
+
+  cpu_ = std::move(cpu);
   debug_ = debug;
 }
 
-Emulator::~Emulator()
+Emulator::Emulator(const std::string& program_path, uint8_t* input)
+    : Emulator(program_path, input, false)
 {
-  delete cpu_;
 }
 
 void Emulator::Run()

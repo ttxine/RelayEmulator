@@ -1,7 +1,6 @@
 #pragma once
 #include <string>
 #include <vector>
-#include <memory>
 
 #include "compiler/token.h"
 
@@ -12,29 +11,25 @@ class BaseNode
     BaseNode()
     {
     }
-    BaseNode(const BaseNode&) = delete;
-    BaseNode& operator=(const BaseNode&) = delete;
-    BaseNode(BaseNode&& other) = default;
-    BaseNode& operator=(BaseNode&& other) = default;
 
   public:
-    const std::vector<std::unique_ptr<T>>& GetSubNodes() const
+    const std::vector<T>& GetSubNodes() const
     {
       return sub_nodes_;
     };
 
-    void AddSubNodes(std::unique_ptr<T> node)
+    void AddSubNodes(T node)
     {
-      sub_nodes_.push_back(std::move(node));
+      sub_nodes_.push_back(node);
     };
 
-    void SetSubNodes(std::vector<std::unique_ptr<T>> sub_nodes)
+    void SetSubNodes(std::vector<T> sub_nodes)
     {
-      sub_nodes_ = std::move(sub_nodes);
+      sub_nodes_ = sub_nodes;
     };
 
   protected:
-    std::vector<std::unique_ptr<T>> sub_nodes_;
+    std::vector<T> sub_nodes_;
 };
 
 class Node : public BaseNode<Node>
