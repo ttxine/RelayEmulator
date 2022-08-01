@@ -17,7 +17,8 @@ uint8_t& CPU::GetSetRegister(uint8_t code)
 
 bool& CPU::GetSetFlag(Flag f)
 {
-  switch(f) {
+  switch(f)
+  {
     case Flag::kCY: return carry_;
     case Flag::kZ: return zero_;
     default: return sign_;

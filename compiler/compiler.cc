@@ -14,13 +14,14 @@ std::string Compiler::Compile() const
     throw std::runtime_error("can't open temporary file");
   }
 
-  for (std::unique_ptr<Node>& node : root_->nodes)
+  for (const std::unique_ptr<Node>& node : root_->GetSubNodes())
   {
-    if (InstructionNode* inode = dynamic_cast<InstructionNode*>(node.get()))
+    if (IsInstruction(*node))
     {
       try
       {
-        uint16_t opcode = AssembleInstruction(*inode);
+        uint16_t opcode = AssembleInstruction(*node);
+
         file << static_cast<uint8_t>(opcode >> 8)
              << static_cast<uint8_t>(opcode);
       }
@@ -30,7 +31,7 @@ std::string Compiler::Compile() const
         throw;
       }
     }
-    else if (!dynamic_cast<LabelNode*>(node.get()))
+    else if (!IsLabel(*node))
     {
       unlink_temporary_file(path);
       throw std::runtime_error("instruction or label expected");
@@ -40,9 +41,9 @@ std::string Compiler::Compile() const
   return path;
 }
 
-uint16_t Compiler::AssembleInstruction(const InstructionNode& node) const
+uint16_t Compiler::AssembleInstruction(const Node& node) const
 {
-  std::string str = strtolower(node.str);
+  std::string str = strtolower(node.GetString());
 
   if (str == "halt")
   {
@@ -136,21 +137,21 @@ inline uint16_t Compiler::AssembleNOP() const
   return 0x0000;
 }
 
-uint16_t Compiler::AssembleLOAD(const InstructionNode& node) const
+uint16_t Compiler::AssembleLOAD(const Node& node) const
 {
-  if (IsOperandRegister(*node.operands[0]) &&
-      IsOperandRegister(*node.operands[1]))
+  if (IsOperandRegister(*node.GetSubNodes()[0]) &&
+      IsOperandRegister(*node.GetSubNodes()[1]))
   {
-    uint8_t G = GetRegisterCode(node.operands[0]->str);
-    uint8_t P = GetRegisterCode(node.operands[1]->str);
+    uint8_t G = GetRegisterCode(node.GetSubNodes()[0]->GetString());
+    uint8_t P = GetRegisterCode(node.GetSubNodes()[1]->GetString());
 
     return 0x2800 | G << 8 | P;
   }
-  else if (IsOperandRegister(*node.operands[0]) &&
-           IsOperandNumerical(*node.operands[1]))
+  else if (IsOperandRegister(*node.GetSubNodes()[0]) &&
+           IsOperandNumerical(*node.GetSubNodes()[1]))
   {
-    uint8_t G = GetRegisterCode(node.operands[0]->str);
-    uint8_t Imm = asm_stoi(node.operands[1]->str);
+    uint8_t G = GetRegisterCode(node.GetSubNodes()[0]->GetString());
+    uint8_t Imm = asm_stoi(node.GetSubNodes()[1]->GetString());
 
     return 0x2000 | G << 8 | Imm;
   }
@@ -160,21 +161,21 @@ uint16_t Compiler::AssembleLOAD(const InstructionNode& node) const
   }
 }
 
-uint16_t Compiler::AssembleSTORE(const InstructionNode& node) const
+uint16_t Compiler::AssembleSTORE(const Node& node) const
 {
-  if (IsOperandRegister(*node.operands[0]) &&
-      IsOperandRegister(*node.operands[1]))
+  if (IsOperandRegister(*node.GetSubNodes()[0]) &&
+      IsOperandRegister(*node.GetSubNodes()[1]))
   {
-    uint8_t G = GetRegisterCode(node.operands[0]->str);
-    uint8_t P = GetRegisterCode(node.operands[1]->str);
+    uint8_t G = GetRegisterCode(node.GetSubNodes()[0]->GetString());
+    uint8_t P = GetRegisterCode(node.GetSubNodes()[1]->GetString());
 
     return 0x3800 | G << 8 | P;
   }
-  else if (IsOperandRegister(*node.operands[0]) &&
-           IsOperandNumerical(*node.operands[1]))
+  else if (IsOperandRegister(*node.GetSubNodes()[0]) &&
+           IsOperandNumerical(*node.GetSubNodes()[1]))
   {
-    uint8_t G = GetRegisterCode(node.operands[0]->str);
-    uint8_t Imm = asm_stoi(node.operands[1]->str);
+    uint8_t G = GetRegisterCode(node.GetSubNodes()[0]->GetString());
+    uint8_t Imm = asm_stoi(node.GetSubNodes()[1]->GetString());
 
     return 0x3000 | G << 8 | Imm;
   }
@@ -184,26 +185,26 @@ uint16_t Compiler::AssembleSTORE(const InstructionNode& node) const
   }
 }
 
-uint16_t Compiler::AssembleCALL(const InstructionNode& node) const
+uint16_t Compiler::AssembleCALL(const Node& node) const
 {
-  const bool bNodeHasTwoOperands = node.operands.size() == 2;
+  const bool bNodeHasTwoOperands = node.GetSubNodes().size() == 2;
 
-  if (bNodeHasTwoOperands && IsOperandCondition(*node.operands[0]) &&
-      IsOperandNumerical(*node.operands[1]))
+  if (bNodeHasTwoOperands && IsOperandCondition(*node.GetSubNodes()[0]) &&
+      IsOperandNumerical(*node.GetSubNodes()[1]))
   {
-    uint8_t Cond = GetConditionCode(node.operands[0]->str);
-    uint8_t Imm = asm_stoi(node.operands[1]->str);
+    uint8_t Cond = GetConditionCode(node.GetSubNodes()[0]->GetString());
+    uint8_t Imm = asm_stoi(node.GetSubNodes()[1]->GetString());
 
     return 0x8F00 | Cond << 12 | Imm;
   }
-  else if (bNodeHasTwoOperands && IsOperandCondition(*node.operands[0]) &&
-           IsOperandIdentifier(*node.operands[1]))
+  else if (bNodeHasTwoOperands && IsOperandCondition(*node.GetSubNodes()[0]) &&
+           IsOperandIdentifier(*node.GetSubNodes()[1]))
   {
-    auto label = labels_.find(node.operands[1]->str);
+    auto label = labels_.find(node.GetSubNodes()[1]->GetString());
 
     if (label != labels_.end())
     {
-      uint8_t Cond = GetConditionCode(node.operands[0]->str);
+      uint8_t Cond = GetConditionCode(node.GetSubNodes()[0]->GetString());
       uint8_t Imm = label->second;
 
       return 0x8F00 | Cond << 12 | Imm;
@@ -211,18 +212,18 @@ uint16_t Compiler::AssembleCALL(const InstructionNode& node) const
     else
     {
       throw std::runtime_error("unknown identifier: \"" +
-                               node.operands[0]->str + '\"');
+                               node.GetSubNodes()[0]->GetString() + '\"');
     }
   }
-  else if (IsOperandNumerical(*node.operands[0]))
+  else if (IsOperandNumerical(*node.GetSubNodes()[0]))
   {
-    uint8_t Imm = asm_stoi(node.operands[0]->str);
+    uint8_t Imm = asm_stoi(node.GetSubNodes()[0]->GetString());
 
     return 0x8F00 | Imm;
   }
-  else if (IsOperandIdentifier(*node.operands[0]))
+  else if (IsOperandIdentifier(*node.GetSubNodes()[0]))
   {
-    auto label = labels_.find(node.operands[0]->str);
+    auto label = labels_.find(node.GetSubNodes()[0]->GetString());
 
     if (label != labels_.end())
     {
@@ -233,7 +234,7 @@ uint16_t Compiler::AssembleCALL(const InstructionNode& node) const
     else
     {
       throw std::runtime_error("unknown identifier: \"" +
-                               node.operands[0]->str + '\"');
+                               node.GetSubNodes()[0]->GetString() + '\"');
     }
   }
   else
@@ -242,26 +243,26 @@ uint16_t Compiler::AssembleCALL(const InstructionNode& node) const
   }
 }
 
-uint16_t Compiler::AssembleJMP(const InstructionNode& node) const
+uint16_t Compiler::AssembleJMP(const Node& node) const
 {
-  const bool bNodeHasTwoOperands = node.operands.size() == 2;
+  const bool bNodeHasTwoOperands = node.GetSubNodes().size() == 2;
 
-  if (bNodeHasTwoOperands && IsOperandCondition(*node.operands[0]) &&
-      IsOperandNumerical(*node.operands[1]))
+  if (bNodeHasTwoOperands && IsOperandCondition(*node.GetSubNodes()[0]) &&
+      IsOperandNumerical(*node.GetSubNodes()[1]))
   {
-    uint8_t Cond = GetConditionCode(node.operands[0]->str);
-    uint8_t Imm = asm_stoi(node.operands[1]->str);
+    uint8_t Cond = GetConditionCode(node.GetSubNodes()[0]->GetString());
+    uint8_t Imm = asm_stoi(node.GetSubNodes()[1]->GetString());
 
     return 0x8700 | Cond << 12 | Imm;
   }
-  else if (bNodeHasTwoOperands && IsOperandCondition(*node.operands[0]) &&
-           IsOperandIdentifier(*node.operands[1]))
+  else if (bNodeHasTwoOperands && IsOperandCondition(*node.GetSubNodes()[0]) &&
+           IsOperandIdentifier(*node.GetSubNodes()[1]))
   {
-    auto label = labels_.find(node.operands[1]->str);
+    auto label = labels_.find(node.GetSubNodes()[1]->GetString());
 
     if (label != labels_.end())
     {
-      uint8_t Cond = GetConditionCode(node.operands[0]->str);
+      uint8_t Cond = GetConditionCode(node.GetSubNodes()[0]->GetString());
       uint8_t Imm = label->second;
 
       return 0x8700 | Cond << 12 | Imm;
@@ -269,18 +270,18 @@ uint16_t Compiler::AssembleJMP(const InstructionNode& node) const
     else
     {
       throw std::runtime_error("unknown identifier: \"" +
-                               node.operands[0]->str + '\"');
+                               node.GetSubNodes()[0]->GetString() + '\"');
     }
   }
-  else if (IsOperandNumerical(*node.operands[0]))
+  else if (IsOperandNumerical(*node.GetSubNodes()[0]))
   {
-    uint8_t Imm = asm_stoi(node.operands[0]->str);
+    uint8_t Imm = asm_stoi(node.GetSubNodes()[0]->GetString());
 
     return 0x8700 | Imm;
   }
-  else if (IsOperandIdentifier(*node.operands[0]))
+  else if (IsOperandIdentifier(*node.GetSubNodes()[0]))
   {
-    auto label = labels_.find(node.operands[0]->str);
+    auto label = labels_.find(node.GetSubNodes()[0]->GetString());
 
     if (label != labels_.end())
     {
@@ -291,7 +292,7 @@ uint16_t Compiler::AssembleJMP(const InstructionNode& node) const
     else
     {
       throw std::runtime_error("unknown identifier: \"" +
-                               node.operands[0]->str + '\"');
+                               node.GetSubNodes()[0]->GetString() + '\"');
     }
   }
   else
@@ -300,25 +301,25 @@ uint16_t Compiler::AssembleJMP(const InstructionNode& node) const
   }
 }
 
-uint16_t Compiler::AssembleMOVI(const InstructionNode& node) const
+uint16_t Compiler::AssembleMOVI(const Node& node) const
 {
-  const bool bNodeHasThreeOperands = node.operands.size() == 3;
+  const bool bNodeHasThreeOperands = node.GetSubNodes().size() == 3;
 
-  if (bNodeHasThreeOperands && IsOperandCondition(*node.operands[0]) &&
-      IsOperandRegister(*node.operands[1]) &&
-      IsOperandNumerical(*node.operands[2]))
+  if (bNodeHasThreeOperands && IsOperandCondition(*node.GetSubNodes()[0]) &&
+      IsOperandRegister(*node.GetSubNodes()[1]) &&
+      IsOperandNumerical(*node.GetSubNodes()[2]))
   {
-    uint8_t Cond = GetConditionCode(node.operands[0]->str);
-    uint8_t Gd = GetRegisterCode(node.operands[1]->str);
-    uint8_t Imm = asm_stoi(node.operands[2]->str);
+    uint8_t Cond = GetConditionCode(node.GetSubNodes()[0]->GetString());
+    uint8_t Gd = GetRegisterCode(node.GetSubNodes()[1]->GetString());
+    uint8_t Imm = asm_stoi(node.GetSubNodes()[2]->GetString());
 
     return 0x8000 | Cond << 12 | Gd << 8 | Imm;
   }
-  else if (IsOperandRegister(*node.operands[0]) &&
-           IsOperandNumerical(*node.operands[1]))
+  else if (IsOperandRegister(*node.GetSubNodes()[0]) &&
+           IsOperandNumerical(*node.GetSubNodes()[1]))
   {
-    uint8_t Gd = GetRegisterCode(node.operands[1]->str);
-    uint8_t Imm = asm_stoi(node.operands[2]->str);
+    uint8_t Gd = GetRegisterCode(node.GetSubNodes()[1]->GetString());
+    uint8_t Imm = asm_stoi(node.GetSubNodes()[2]->GetString());
 
     return 0x8000 | Gd << 8 | Imm;
   }
@@ -328,13 +329,13 @@ uint16_t Compiler::AssembleMOVI(const InstructionNode& node) const
   }
 }
 
-uint16_t Compiler::AssembleMOV(const InstructionNode& node) const
+uint16_t Compiler::AssembleMOV(const Node& node) const
 {
-  if (IsOperandRegister(*node.operands[0]) &&
-      IsOperandRegister(*node.operands[1]))
+  if (IsOperandRegister(*node.GetSubNodes()[0]) &&
+      IsOperandRegister(*node.GetSubNodes()[1]))
   {
-    uint8_t Gd = GetRegisterCode(node.operands[0]->str);
-    uint8_t Gs = GetRegisterCode(node.operands[1]->str);
+    uint8_t Gd = GetRegisterCode(node.GetSubNodes()[0]->GetString());
+    uint8_t Gs = GetRegisterCode(node.GetSubNodes()[1]->GetString());
 
     return 0x1800 | Gd << 8 | Gs << 4;
   }
@@ -344,85 +345,85 @@ uint16_t Compiler::AssembleMOV(const InstructionNode& node) const
   }
 }
 
-uint16_t Compiler::AssembleADC(const InstructionNode& node) const
+uint16_t Compiler::AssembleADC(const Node& node) const
 {
   return AssembleBinaryALU(node, 0);
 }
 
-uint16_t Compiler::AssembleADD(const InstructionNode& node) const
+uint16_t Compiler::AssembleADD(const Node& node) const
 {
   return AssembleBinaryALU(node, 1);
 }
 
-uint16_t Compiler::AssembleSBC(const InstructionNode& node) const
+uint16_t Compiler::AssembleSBC(const Node& node) const
 {
   return AssembleBinaryALU(node, 2);
 }
 
-uint16_t Compiler::AssembleSUB(const InstructionNode& node) const
+uint16_t Compiler::AssembleSUB(const Node& node) const
 {
   return AssembleBinaryALU(node, 3);
 }
 
-uint16_t Compiler::AssembleAND(const InstructionNode& node) const
+uint16_t Compiler::AssembleAND(const Node& node) const
 {
   return AssembleBinaryALU(node, 4);
 }
 
-uint16_t Compiler::AssembleOR(const InstructionNode& node) const
+uint16_t Compiler::AssembleOR(const Node& node) const
 {
   return AssembleBinaryALU(node, 5);
 }
 
-uint16_t Compiler::AssembleXOR(const InstructionNode& node) const
+uint16_t Compiler::AssembleXOR(const Node& node) const
 {
   return AssembleBinaryALU(node, 6);
 }
 
-uint16_t Compiler::AssembleNOT(const InstructionNode& node) const
+uint16_t Compiler::AssembleNOT(const Node& node) const
 {
   return AssembleUnaryALU(node, 0);
 }
 
-uint16_t Compiler::AssembleROR(const InstructionNode& node) const
+uint16_t Compiler::AssembleROR(const Node& node) const
 {
   return AssembleUnaryALU(node, 1);
 }
 
-uint16_t Compiler::AssembleSHR(const InstructionNode& node) const
+uint16_t Compiler::AssembleSHR(const Node& node) const
 {
   return AssembleUnaryALU(node, 2);
 }
 
-uint16_t Compiler::AssembleRCR(const InstructionNode& node) const
+uint16_t Compiler::AssembleRCR(const Node& node) const
 {
   return AssembleUnaryALU(node, 3);
 }
 
-uint16_t Compiler::AssembleBinaryALU(const InstructionNode& node,
+uint16_t Compiler::AssembleBinaryALU(const Node& node,
                                      uint8_t code) const
 {
-  if (IsOperandRegister(*node.operands[0]) &&
-      IsOperandRegister(*node.operands[1]) &&
-      IsOperandRegister(*node.operands[2]))
+  if (IsOperandRegister(*node.GetSubNodes()[0]) &&
+      IsOperandRegister(*node.GetSubNodes()[1]) &&
+      IsOperandRegister(*node.GetSubNodes()[2]))
   {
-    bool r = strtolower(node.operands[0]->str) != "f";
+    bool r = strtolower(node.GetSubNodes()[0]->GetString()) != "f";
 
-    uint8_t Gd = r ? GetRegisterCode(node.operands[0]->str) : 0;
-    uint8_t Gs1 = GetRegisterCode(node.operands[1]->str);
-    uint8_t Op2 = GetRegisterCode(node.operands[2]->str);
+    uint8_t Gd = r ? GetRegisterCode(node.GetSubNodes()[0]->GetString()) : 0;
+    uint8_t Gs1 = GetRegisterCode(node.GetSubNodes()[1]->GetString());
+    uint8_t Op2 = GetRegisterCode(node.GetSubNodes()[2]->GetString());
 
     return 0x4000 | code << 11 | Gd << 8 | Gs1 << 4 | r << 3 | Op2;
   }
-  else if (IsOperandRegister(*node.operands[0]) &&
-           IsOperandRegister(*node.operands[1]) &&
-           IsOperandNumerical(*node.operands[2]))
+  else if (IsOperandRegister(*node.GetSubNodes()[0]) &&
+           IsOperandRegister(*node.GetSubNodes()[1]) &&
+           IsOperandNumerical(*node.GetSubNodes()[2]))
   {
-    bool r = strtolower(node.operands[0]->str) != "f";
+    bool r = strtolower(node.GetSubNodes()[0]->GetString()) != "f";
 
-    uint8_t Gd = r ? GetRegisterCode(node.operands[0]->str) : 0;
-    uint8_t Gs1 = GetRegisterCode(node.operands[1]->str);
-    uint8_t Op2 = asm_stoi(node.operands[2]->str);
+    uint8_t Gd = r ? GetRegisterCode(node.GetSubNodes()[0]->GetString()) : 0;
+    uint8_t Gs1 = GetRegisterCode(node.GetSubNodes()[1]->GetString());
+    uint8_t Op2 = asm_stoi(node.GetSubNodes()[2]->GetString());
 
     return 0x4000 | code << 11 | Gd << 8 | 1 << 7 | Gs1 << 4 | r << 3 | Op2;
   }
@@ -432,16 +433,16 @@ uint16_t Compiler::AssembleBinaryALU(const InstructionNode& node,
   }
 }
 
-uint16_t Compiler::AssembleUnaryALU(const InstructionNode& node,
+uint16_t Compiler::AssembleUnaryALU(const Node& node,
                                      uint8_t code) const
 {
-  if (IsOperandRegister(*node.operands[0]) &&
-      IsOperandRegister(*node.operands[1]))
+  if (IsOperandRegister(*node.GetSubNodes()[0]) &&
+      IsOperandRegister(*node.GetSubNodes()[1]))
   {
-    bool r = strtolower(node.operands[0]->str) != "f";
+    bool r = strtolower(node.GetSubNodes()[0]->GetString()) != "f";
 
-    uint8_t Gd = r ? GetRegisterCode(node.operands[0]->str) : 0;
-    uint8_t Gs = GetRegisterCode(node.operands[1]->str);
+    uint8_t Gd = r ? GetRegisterCode(node.GetSubNodes()[0]->GetString()) : 0;
+    uint8_t Gs = GetRegisterCode(node.GetSubNodes()[1]->GetString());
 
     return 0x7800 | Gd << 8 | Gs << 4 | r << 3 | code << 1;
   }

@@ -30,18 +30,18 @@ class Parser
 
   private:
     std::unique_ptr<Node> ParseNextNode();
-    std::unique_ptr<LabelNode> ParseLabel();
-    std::unique_ptr<InstructionNode> ParseInstruction();
-    std::unique_ptr<OperandNode> ParseOperand();
+    std::unique_ptr<Node> ParseLabel();
+    std::unique_ptr<Node> ParseInstruction();
+    std::unique_ptr<Node> ParseOperand();
+
+    std::vector<std::unique_ptr<Node>> TakeOneOperand();
+    std::vector<std::unique_ptr<Node>> TakeTwoOperands();
+    std::vector<std::unique_ptr<Node>> TakeThreeOperands();
+    std::vector<std::unique_ptr<Node>> TakeTwoOperandsOptional();
+    std::vector<std::unique_ptr<Node>> TakeThreeOperandsOptional();
 
     void InitializeInstructions();
     InstructionLength GetInstructionLength(const std::string& instruction);
-
-    std::vector<std::unique_ptr<OperandNode>> TakeOneOperand();
-    std::vector<std::unique_ptr<OperandNode>> TakeTwoOperands();
-    std::vector<std::unique_ptr<OperandNode>> TakeThreeOperands();
-    std::vector<std::unique_ptr<OperandNode>> TakeTwoOperandsOptional();
-    std::vector<std::unique_ptr<OperandNode>> TakeThreeOperandsOptional();
 
     std::pair<Token, std::string> GetCurrentToken() const
     {
