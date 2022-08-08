@@ -20,13 +20,15 @@ set(SOURCES
     utils/tempfile.cc)
 
 set(UI_SOURCES
+    ui/panels.cc
+    ui/statebox.cc
     ui/mainform.cc)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 add_executable(relay_emulator ${SOURCES} main/main.cc)
 add_executable(relay_emulator_ui
-               # ${SOURCES}
+               ${SOURCES}
                ${UI_SOURCES}
                ui/app.cc)
 

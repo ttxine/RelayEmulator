@@ -5,7 +5,7 @@
 
 class CPU {
   public:
-    enum Register : uint8_t
+    enum RegisterCode : uint8_t
     {
       kA, kB, kC, kD,
       kM, kS,
@@ -13,7 +13,7 @@ class CPU {
       kPC
     };
 
-    enum Instruction : uint16_t
+    enum InstructionCode : uint16_t
     {
       kHALT       = 0x1000,
       kNOP        = 0x0000,
@@ -28,7 +28,7 @@ class CPU {
       kALU_Op     = 0x4000
     };
 
-    enum class Flag : uint8_t
+    enum class Flag
     {
       kCY,
       kZ,
@@ -36,14 +36,14 @@ class CPU {
     };
 
   public:
-    CPU(std::unique_ptr<Memory> memory) : memory_(std::move(memory))
+    CPU(std::shared_ptr<Memory> memory) : memory_(memory)
     {
     }
 
-    CPU(const CPU&) = delete;
-    CPU& operator=(const CPU&) = delete;
-
   public:
+    uint16_t Fetch();
+    void Decode(uint16_t instruction);
+
     bool IsRunning() const
     {
       return is_running_;
@@ -69,22 +69,22 @@ class CPU {
       GetSetFlag(f) = v;
     }
 
-  public:
-    uint16_t Read(uint8_t addr);
-    void Write(uint8_t addr, uint8_t value);
+    uint16_t Read(uint8_t addr)
+    {
+      return memory_->Read(addr);
+    }
 
-  public:
-    uint16_t Fetch();
-    void Decode(uint16_t instruction);
+    void Write(uint8_t addr, uint8_t value)
+    {
+      return memory_->Write(addr, value);
+    }
 
   private:
     uint8_t& GetSetRegister(uint8_t code);
     bool& GetSetFlag(Flag f);
 
-  private:
     bool CheckCondition(uint8_t cond);
 
-  private:
     void HALT();
     void NOP();
     void LOAD(uint8_t G, uint8_t P);
@@ -97,12 +97,10 @@ class CPU {
     void MOV(uint8_t Gd, uint8_t Gs);
     void ALUOperation(uint16_t instruction);
 
-  private:
-    void BinaryALUOperation(uint8_t code, uint8_t Gd, uint8_t Gs1,
-                      uint8_t Op2, bool r, bool i);
+    void BinaryALUOperation(uint8_t code, uint8_t Gd, uint8_t Gs1, uint8_t Op2,
+                            bool r, bool i);
     void UnaryAlUOperation(uint8_t code, uint8_t Gd, uint8_t Gs, bool r);
 
-  private:
     uint8_t ADC(uint8_t Gs1, uint8_t Op2);
     uint8_t ADD(uint8_t Gs1, uint8_t Op2);
     uint8_t SBC(uint8_t Gs1, uint8_t Op2);
@@ -118,7 +116,6 @@ class CPU {
   private:
     bool is_running_ = true;
 
-  private:
     uint8_t A_ = 0x00;
     uint8_t B_ = 0x00;
     uint8_t C_ = 0x00;
@@ -128,7 +125,7 @@ class CPU {
     uint8_t L_ = 0x00;
     uint8_t PC_ = 0x00;
 
-    std::unique_ptr<Memory> memory_;
+    std::shared_ptr<Memory> memory_;
 
     bool sign_ = false;
     bool zero_ = false;

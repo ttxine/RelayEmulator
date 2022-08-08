@@ -1,19 +1,25 @@
 #pragma once
+#include <array>
 #include <cstdint>
 #include <fstream>
 
 class Memory
 {
   public:
-    Memory(std::ifstream& program);
-    Memory(std::ifstream& program, uint8_t* input);
+    static const std::size_t kProgramDataSize = 128;
+    static const std::size_t kInputSwitchesSize = 16;
+    static const std::size_t kUnusedSize = 112;
 
   public:
-    uint16_t Read(uint8_t);
+    Memory(std::ifstream& program, std::array<uint8_t, 2> input);
+
+  public:
+    uint16_t Read(uint8_t addr);
     void Write(uint8_t addr, uint8_t value);
+    void Input(uint8_t first, uint8_t second);
 
   private:
-    uint16_t program_data_[64] = { 0x0000 };
-    uint8_t input_switches_[16] = { 0x00 };
-    uint8_t unused_[112] = { 0x00 };
+    std::array<uint16_t, kProgramDataSize> program_data_ = {};
+    std::array<uint8_t, kInputSwitchesSize> input_switches_ = {};
+    std::array<uint8_t, kUnusedSize> unused_ = {};
 };

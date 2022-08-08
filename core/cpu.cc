@@ -2,7 +2,7 @@
 
 uint8_t& CPU::GetSetRegister(uint8_t code)
 {
-  switch (Register(code & 0x07))
+  switch (RegisterCode(code & 0x07))
   {
     case kA: return A_;
     case kB: return B_;
@@ -38,16 +38,6 @@ bool CPU::CheckCondition(uint8_t cond)
     case 0b110: return !GetFlag(Flag::kZ);
     default: return false;
   }
-}
-
-uint16_t CPU::Read(uint8_t addr)
-{
-  return memory_->Read(addr);
-}
-
-void CPU::Write(uint8_t addr, uint8_t value)
-{
-  return memory_->Write(addr, value);
 }
 
 uint16_t CPU::Fetch()

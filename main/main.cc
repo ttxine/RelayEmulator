@@ -22,8 +22,9 @@ void clear(const std::string& prog, const std::string& executable_path,
   }
 }
 
-int main(int argc, char* argv[]) {
-  uint8_t input[2];
+int main(int argc, char* argv[])
+{
+  std::array<uint8_t, 2> input = {};
   int input_count = 0;
 
   bool debug = false;
@@ -39,16 +40,7 @@ int main(int argc, char* argv[]) {
     {
       case 's':
       {
-        try
-        {
-          is_asm = true;
-        }
-        catch (const std::runtime_error& e)
-        {
-          std::cerr << argv[0] << ": error: compiler: " << e.what()
-                    << std::endl;
-          exit(EXIT_FAILURE);
-        }
+        is_asm = true;
         break;
       }
       case 'i':
@@ -107,7 +99,7 @@ int main(int argc, char* argv[]) {
 
   try
   {
-    Emulator emu(executable_path, input, debug);
+    Emulator emu(executable_path, debug, input);
     emu.Run();
   }
   catch(const std::runtime_error& e)
@@ -119,6 +111,5 @@ int main(int argc, char* argv[]) {
   }
 
   clear(argv[0], executable_path, is_asm);
-
   return 0;
 }

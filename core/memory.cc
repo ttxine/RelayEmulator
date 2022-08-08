@@ -1,40 +1,35 @@
+#include <arpa/inet.h>
+
 #include "core/memory.h"
 
-Memory::Memory(std::ifstream& program)
+Memory::Memory(std::ifstream& program, std::array<uint8_t, 2> input)
 {
-  uint8_t opcode[2];
+  uint16_t opcode = 0x0000;
   uint8_t mem_used = 0;
 
-  while ((opcode[0] = program.get()) && mem_used < 64)
+  while (program.read(reinterpret_cast<char*>(&opcode), sizeof(opcode)) &&
+         mem_used < kProgramDataSize)
   {
-    opcode[1] = program.get();
-    if (opcode[1])
-    {
-      program_data_[mem_used] = (opcode[0] << 8) | opcode[1];
-    }
-    else
-    {
-      program_data_[mem_used] = opcode[0] << 8;
-    }
+    program_data_[mem_used] = ntohs(opcode);
     ++mem_used;
   }
+
+  Input(input[0], input[1]);
 }
 
-Memory::Memory(std::ifstream& program, uint8_t* input)
-:
-Memory(program)
+void Memory::Input(uint8_t first, uint8_t second)
 {
-  input_switches_[0] = input[0];
-  input_switches_[1] = input[1];
+  input_switches_[0] = first;
+  input_switches_[1] = second;
 }
 
 uint16_t Memory::Read(uint8_t addr)
 {
-  if (addr >= 0x00 && addr <= 0x7F)
+  if (addr < 0x80)
   {
     return program_data_[addr];
   }
-  else if (addr >= 0x80 && addr <= 0x8F)
+  else if (addr < 0x90)
   {
     return input_switches_[addr - 0x80];
   }
@@ -46,16 +41,4 @@ uint16_t Memory::Read(uint8_t addr)
 
 void Memory::Write(uint8_t addr, uint8_t value)
 {
-  if (addr >= 0x00 && addr <= 0x7F)
-  {
-    return;
-  }
-  else if (addr >= 0x80 && addr <= 0x8F)
-  {
-    return;
-  }
-  else
-  {
-    return;
-  }
 }
