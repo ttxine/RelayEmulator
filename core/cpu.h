@@ -1,7 +1,7 @@
 #pragma once
 #include <memory>
 
-#include "core/memory.h"
+class Bus;
 
 class CPU {
   public:
@@ -36,17 +36,17 @@ class CPU {
     };
 
   public:
-    CPU(std::shared_ptr<Memory> memory) : memory_(memory)
+    CPU(Bus* main_bus) : main_bus_(main_bus)
     {
-    }
+    };
 
   public:
     uint16_t Fetch();
     void Decode(uint16_t instruction);
 
-    bool IsRunning() const
+    bool Halted() const
     {
-      return is_running_;
+      return is_halted_;
     };
 
     uint8_t GetRegister(uint8_t code)
@@ -69,15 +69,8 @@ class CPU {
       GetSetFlag(f) = v;
     }
 
-    uint16_t Read(uint8_t addr)
-    {
-      return memory_->Read(addr);
-    }
-
-    void Write(uint8_t addr, uint8_t value)
-    {
-      return memory_->Write(addr, value);
-    }
+    uint16_t Read(uint8_t addr);
+    void Write(uint8_t addr, uint8_t value);
 
   private:
     uint8_t& GetSetRegister(uint8_t code);
@@ -114,7 +107,7 @@ class CPU {
     uint8_t RCR(uint8_t Gs);
 
   private:
-    bool is_running_ = true;
+    Bus* main_bus_;
 
     uint8_t A_ = 0x00;
     uint8_t B_ = 0x00;
@@ -125,9 +118,9 @@ class CPU {
     uint8_t L_ = 0x00;
     uint8_t PC_ = 0x00;
 
-    std::shared_ptr<Memory> memory_;
-
     bool sign_ = false;
     bool zero_ = false;
     bool carry_ = false;
+
+    bool is_halted_ = false;
 };

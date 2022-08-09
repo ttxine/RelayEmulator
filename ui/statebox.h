@@ -3,7 +3,7 @@
 #include <wx/wx.h>
 
 #include "ui/panels.h"
-#include "core/memory.h"
+#include "core/rom.h"
 
 class reBaseStateBox : public wxStaticBox
 {
@@ -74,34 +74,34 @@ class reMemoryStateBox : public reBaseStateBox
 
   public:
     void SetProgramDataValues(
-        const std::array<uint16_t, Memory::kProgramDataSize>& values)
+        const std::array<uint16_t, ROM::kProgramDataSize>& values)
     {
-      for (int i = 0; i < Memory::kProgramDataSize; ++i)
+      for (int i = 0; i < ROM::kProgramDataSize; ++i)
       {
         program_[i]->SetValue(values[i]);
       }
     }
 
     void SetInputSwitchesValues(
-        const std::array<uint8_t, Memory::kInputSwitchesSize>& values)
+        const std::array<uint8_t, ROM::kInputSwitchesSize>& values)
     {
-      for (int i = 0; i < Memory::kInputSwitchesSize; ++i)
+      for (int i = 0; i < ROM::kInputSwitchesSize; ++i)
       {
         input_[i]->SetValue(values[i]);
       }
     }
 
     void SetUnusedValues(
-        const std::array<uint8_t, Memory::kUnusedSize>& values)
+        const std::array<uint8_t, ROM::kUnusedSize>& values)
     {
-      for (int i = 0; i < Memory::kUnusedSize; ++i)
+      for (int i = 0; i < ROM::kUnusedSize; ++i)
       {
         unused_[i]->SetValue(values[i]);
       }
     }
 
   private:
-    std::array<reMemoryPanel<16>*, Memory::kProgramDataSize> program_;
-    std::array<reMemoryPanel<8>*, Memory::kInputSwitchesSize> input_;
-    std::array<reMemoryPanel<8>*, Memory::kUnusedSize> unused_;
+    std::array<reMemoryPanel<16>*, ROM::kProgramDataSize> program_;
+    std::array<reMemoryPanel<8>*, ROM::kInputSwitchesSize> input_;
+    std::array<reMemoryPanel<8>*, ROM::kUnusedSize> unused_;
 };

@@ -1,4 +1,15 @@
 #include "core/cpu.h"
+#include "core/emulator.h"
+
+uint16_t CPU::Read(uint8_t addr)
+{
+  return main_bus_->Read(addr);
+}
+
+void CPU::Write(uint8_t addr, uint8_t value)
+{
+  return main_bus_->Write(addr, value);
+}
 
 uint8_t& CPU::GetSetRegister(uint8_t code)
 {
@@ -130,7 +141,7 @@ void CPU::Decode(uint16_t instruction)
 
 void CPU::HALT()
 {
-  is_running_ = false;
+  is_halted_ = true;
 }
 
 void CPU::NOP()

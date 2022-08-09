@@ -10,8 +10,9 @@ set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 set(SOURCES
-    core/memory.cc
+    core/rom.cc
     core/cpu.cc
+    core/bus.cc
     core/emulator.cc
     compiler/lexer.cc
     compiler/parser.cc

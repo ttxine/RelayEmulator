@@ -1,8 +1,8 @@
 #include <arpa/inet.h>
 
-#include "core/memory.h"
+#include "core/rom.h"
 
-Memory::Memory(std::ifstream& program, std::array<uint8_t, 2> input)
+ROM::ROM(std::ifstream& program, std::array<uint8_t, 2> input)
 {
   uint16_t opcode = 0x0000;
   uint8_t mem_used = 0;
@@ -17,13 +17,13 @@ Memory::Memory(std::ifstream& program, std::array<uint8_t, 2> input)
   Input(input[0], input[1]);
 }
 
-void Memory::Input(uint8_t first, uint8_t second)
+void ROM::Input(uint8_t first, uint8_t second)
 {
   input_switches_[0] = first;
   input_switches_[1] = second;
 }
 
-uint16_t Memory::Read(uint8_t addr)
+uint16_t ROM::Read(uint8_t addr) const
 {
   if (addr < 0x80)
   {
@@ -39,6 +39,6 @@ uint16_t Memory::Read(uint8_t addr)
   }
 }
 
-void Memory::Write(uint8_t addr, uint8_t value)
+void ROM::Write(uint8_t addr, uint8_t value)
 {
 }

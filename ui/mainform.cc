@@ -62,24 +62,24 @@ void reMainForm::EnableRunMenu(bool enable)
 
 void reMainForm::Update()
 {
-  Emulator::State state = emulator_->GetCurrentState();
+  Bus::DebugInfo info = emulator_->GetBusDebugInfo();
 
-  registers_->SetAValue(state.A);
-  registers_->SetBValue(state.B);
-  registers_->SetCValue(state.C);
-  registers_->SetDValue(state.D);
-  registers_->SetMValue(state.M);
-  registers_->SetSValue(state.S);
-  registers_->SetLValue(state.L);
-  registers_->SetPCValue(state.PC);
+  registers_->SetAValue(info.r_A);
+  registers_->SetBValue(info.r_B);
+  registers_->SetCValue(info.r_C);
+  registers_->SetDValue(info.r_D);
+  registers_->SetMValue(info.r_M);
+  registers_->SetSValue(info.r_S);
+  registers_->SetLValue(info.r_L);
+  registers_->SetPCValue(info.r_PC);
 
-  flags_->SetSValue(state.sign);
-  flags_->SetZValue(state.zero);
-  flags_->SetCYValue(state.carry);
+  flags_->SetSValue(info.f_S);
+  flags_->SetZValue(info.f_Z);
+  flags_->SetCYValue(info.f_CY);
 
-  memory_->SetProgramDataValues(state.program_data);
-  memory_->SetInputSwitchesValues(state.input_switches);
-  memory_->SetUnusedValues(state.unused);
+  memory_->SetProgramDataValues(info.m_program_data);
+  memory_->SetInputSwitchesValues(info.m_input_switches);
+  memory_->SetUnusedValues(info.m_unused);
 }
 
 void reMainForm::OnLoad(wxCommandEvent& event)
@@ -96,7 +96,7 @@ void reMainForm::OnLoad(wxCommandEvent& event)
   try
   {
     emulator_ = std::unique_ptr<Emulator>(
-        new Emulator(path, false, { 15, 63 }));
+        new Emulator(path, false, { 15, 63 }, true));
   }
   catch (const std::runtime_error& e)
   {

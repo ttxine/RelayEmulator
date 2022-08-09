@@ -1,9 +1,10 @@
 #pragma once
 #include <array>
+#include <memory>
 #include <cstdint>
 #include <fstream>
 
-class Memory
+class ROM
 {
   public:
     static const std::size_t kProgramDataSize = 128;
@@ -11,10 +12,10 @@ class Memory
     static const std::size_t kUnusedSize = 112;
 
   public:
-    Memory(std::ifstream& program, std::array<uint8_t, 2> input);
+    ROM(std::ifstream& program, std::array<uint8_t, 2> input);
 
   public:
-    uint16_t Read(uint8_t addr);
+    uint16_t Read(uint8_t addr) const;
     void Write(uint8_t addr, uint8_t value);
     void Input(uint8_t first, uint8_t second);
 
