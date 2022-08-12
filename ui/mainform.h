@@ -14,7 +14,9 @@ class reMainForm : public wxFrame
       ID_LOAD = wxID_HIGHEST + 1,
       ID_COMPILE_AND_LOAD,
       ID_RUN,
-      ID_STEP
+      ID_STEP,
+      ID_INPUT,
+      ID_RESET
     };
 
   public:
@@ -29,21 +31,32 @@ class reMainForm : public wxFrame
     void OnCompileAndLoad(wxCommandEvent& event);
     void OnRun(wxCommandEvent& event);
     void OnStep(wxCommandEvent& event);
+    void OnReset(wxCommandEvent& event);
     void OnRealTimeRun(wxCommandEvent& event);
+    void OnInput(wxCommandEvent& event);
     void OnAbout(wxCommandEvent& event);
 
-    void EnableRunMenu(bool enable = true);
+    void EnableRun(bool enable = true);
+    void EnableStep(bool enable = true);
+    void EnableLoad(bool enable = true);
+    void EnableInput(bool enable = true);
+    void EnableReset(bool enable = true);
 
     void CreateControls();
     void CreateMenuBar();
+    wxToolBar* CreateToolBar(long style = -1L, wxWindowID winid = wxID_ANY,
+                             const wxString& name = wxToolBarNameStr);
 
   private:
     wxMenu* run_menu_;
+    wxMenu* load_menu_;
     wxScrolledWindow* state_window_;
 
     reRegisterStateBox* registers_;
     reFlagStateBox* flags_;
     reMemoryStateBox* memory_;
 
-    std::unique_ptr<Emulator> emulator_;
+    Emulator emulator_ = { true, true };
+
+    wxDECLARE_EVENT_TABLE();
 };

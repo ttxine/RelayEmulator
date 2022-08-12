@@ -23,6 +23,7 @@ set(SOURCES
 set(UI_SOURCES
     ui/panels.cc
     ui/statebox.cc
+    ui/inputdialog.cc
     ui/mainform.cc)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)

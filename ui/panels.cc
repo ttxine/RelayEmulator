@@ -8,12 +8,12 @@ reRegisterPanel::reRegisterPanel(wxWindow *parent, const wxString& register_name
   wxBoxSizer* sizer = new wxBoxSizer(wxHORIZONTAL);
 
   register_name_ = new wxStaticText(this, wxID_ANY, register_name,
-                                    wxDefaultPosition, wxSize(30, 30));
+                                    wxDefaultPosition, wxSize(40, 30));
   value_ = new wxStaticText(this, wxID_ANY, "00000000");
   as_unsigned_ = new wxStaticText(this, wxID_ANY, "0", wxDefaultPosition,
-                                  wxSize(20, 30));
+                                  wxSize(24, 30));
   as_signed_ = new wxStaticText(this, wxID_ANY, "0", wxDefaultPosition,
-                                wxSize(20, 30));
+                                wxSize(24, 30));
 
   sizer->Add(register_name_);
   sizer->Add(value_);

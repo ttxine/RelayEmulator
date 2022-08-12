@@ -100,6 +100,8 @@ int main(int argc, char* argv[])
   try
   {
     Emulator emu(executable_path, debug, input);
+    clear(argv[0], executable_path, is_asm);
+
     emu.Run();
   }
   catch(const std::runtime_error& e)
@@ -110,6 +112,5 @@ int main(int argc, char* argv[])
     exit(EXIT_FAILURE);
   }
 
-  clear(argv[0], executable_path, is_asm);
   return 0;
 }

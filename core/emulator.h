@@ -6,6 +6,7 @@
 class Emulator
 {
   public:
+    Emulator(bool debug = false, bool GUI_enabled = false);
     Emulator(const std::string& program_path, bool debug = false,
              std::array<uint8_t, 2> input = {}, bool GUI_enabled = false);
 
@@ -15,6 +16,10 @@ class Emulator
   public:
     void Run();
     void Step();
+    void Reset();
+
+    void Load(const std::string& program_path);
+    void Input(uint8_t first, uint8_t second);
 
     Bus::DebugInfo GetBusDebugInfo() const;
     void PrintBusDebugInfo() const;
@@ -25,6 +30,6 @@ class Emulator
     bool GUI_enabled_;
 
   private:
-    std::unique_ptr<Bus> main_bus_;
+    Bus main_bus_;
     Bus::DebugInfo debug_info_;
 };

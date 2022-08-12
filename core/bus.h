@@ -9,9 +9,7 @@ class Bus
   public:
     struct DebugInfo
     {
-      bool is_running;
-
-      uint16_t next_instruction;
+      std::string instruction;
 
       uint8_t r_A;
       uint8_t r_B;
@@ -32,21 +30,31 @@ class Bus
     };
 
   public:
+    Bus();
     Bus(std::unique_ptr<ROM> rom);
 
     Bus(const Bus&) = delete;
     Bus& operator=(const Bus&) = delete;
 
   public:
+    void ConnectROM(std::unique_ptr<ROM> rom);
+
+    bool Stopped() const;
+
     void Clock();
+    void StopClock();
 
     uint16_t Read(uint8_t addr) const;
     void Write(uint8_t addr, uint8_t value);
     void Input(uint8_t first, uint8_t second);
 
+    void Reset();
+
     DebugInfo GetDebugInfo() const;
 
   private:
+    bool stopped_ = false;
+
     std::unique_ptr<CPU> cpu_;
     std::unique_ptr<ROM> rom_;
 };

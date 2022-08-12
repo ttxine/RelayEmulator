@@ -5,8 +5,8 @@
 ROM::ROM(std::ifstream& program, std::array<uint8_t, 2> input)
 {
   uint16_t opcode = 0x0000;
-  uint8_t mem_used = 0;
 
+  uint8_t mem_used = 0;
   while (program.read(reinterpret_cast<char*>(&opcode), sizeof(opcode)) &&
          mem_used < kProgramDataSize)
   {

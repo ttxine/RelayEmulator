@@ -1,14 +1,40 @@
-#include "core/bus.h"
-#include <iostream>
+#include <stdexcept>
 
-Bus::Bus(std::unique_ptr<ROM> rom) : rom_(std::move(rom))
+#include "core/bus.h"
+
+Bus::Bus()
 {
   cpu_ = std::unique_ptr<CPU>(new CPU(this));
+}
+
+Bus::Bus(std::unique_ptr<ROM> rom) : Bus()
+{
+  ConnectROM(std::move(rom));
 };
+
+void Bus::ConnectROM(std::unique_ptr<ROM> rom)
+{
+  if (!rom)
+  {
+    throw std::runtime_error("invalid ROM");
+  }
+
+  rom_ = std::move(rom);
+}
 
 void Bus::Clock()
 {
-  cpu_->Decode(cpu_->Fetch());
+  cpu_->Clock();
+}
+
+void Bus::StopClock()
+{
+  stopped_ = true;
+}
+
+bool Bus::Stopped() const
+{
+  return stopped_;
 }
 
 uint16_t Bus::Read(uint8_t addr) const
@@ -26,13 +52,17 @@ void Bus::Input(uint8_t first, uint8_t second)
   rom_->Input(first, second);
 }
 
+void Bus::Reset()
+{
+  stopped_ = false;
+  cpu_->Reset();
+}
+
 Bus::DebugInfo Bus::GetDebugInfo() const
 {
   DebugInfo info;
 
-  info.is_running = !cpu_->Halted();
-
-  info.next_instruction = cpu_->Fetch();
+  info.instruction = cpu_->Disassemble(cpu_->GetInstructionRegister());
 
   info.r_A = cpu_->GetRegister(CPU::kA);
   info.r_B = cpu_->GetRegister(CPU::kB);

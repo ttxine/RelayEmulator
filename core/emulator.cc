@@ -5,9 +5,58 @@
 
 #include "core/emulator.h"
 
+Emulator::Emulator(bool debug, bool GUI_enabled)
+    : debug_(debug), GUI_enabled_(GUI_enabled)
+{
+}
+
 Emulator::Emulator(const std::string& program_path, bool debug,
                    std::array<uint8_t, 2> input, bool GUI_enabled)
-    : debug_(debug), GUI_enabled_(GUI_enabled)
+    : Emulator(debug, GUI_enabled)
+{
+  Load(program_path);
+  Input(input[0], input[1]);
+
+  UpdateBusDebugInfo();
+}
+
+void Emulator::Run()
+{
+  while (!main_bus_.Stopped())
+  {
+    Step();
+
+    if (!GUI_enabled_ && debug_)
+    {
+      PrintBusDebugInfo();
+      std::cin.get();
+    }
+  }
+
+  if (!GUI_enabled_ && !debug_)
+  {
+    UpdateBusDebugInfo();
+    PrintBusDebugInfo();
+  }
+}
+
+void Emulator::Step()
+{
+  main_bus_.Clock();
+
+  if (debug_ || main_bus_.Stopped())
+  {
+    UpdateBusDebugInfo();
+  }
+}
+
+void Emulator::Reset()
+{
+  main_bus_.Reset();
+  UpdateBusDebugInfo();
+}
+
+void Emulator::Load(const std::string& program_path)
 {
   std::ifstream program(program_path, std::ios::in | std::ios::binary);
 
@@ -16,42 +65,13 @@ Emulator::Emulator(const std::string& program_path, bool debug,
     throw std::runtime_error("can't open a file");
   }
 
-  std::unique_ptr<ROM> rom = std::unique_ptr<ROM>(new ROM(program, input));
-  main_bus_ = std::unique_ptr<Bus>(new Bus(std::move(rom)));
+  main_bus_.ConnectROM(std::unique_ptr<ROM>(new ROM(program)));
   UpdateBusDebugInfo();
 }
 
-void Emulator::Run()
+void Emulator::Input(uint8_t first, uint8_t second)
 {
-  while (debug_info_.is_running)
-  {
-    bool bNeedToPrint = !GUI_enabled_ && debug_;
-  
-    if (bNeedToPrint)
-    {
-      uint16_t next_instruction = debug_info_.next_instruction;
-      printf("%.2x: %s\n\n", debug_info_.r_PC,
-             std::bitset<16>(next_instruction).to_string().c_str());
-    }
-
-    Step();
-
-    if (bNeedToPrint)
-    {
-      PrintBusDebugInfo();
-      std::cin.get();
-    }
-  }
-
-  if (!GUI_enabled_)
-  {
-    PrintBusDebugInfo();
-  }
-}
-
-void Emulator::Step()
-{
-  main_bus_->Clock();
+  main_bus_.Input(first, second);
   UpdateBusDebugInfo();
 }
 
@@ -60,11 +80,18 @@ Bus::DebugInfo Emulator::GetBusDebugInfo() const
   return debug_info_;
 }
 
+void Emulator::UpdateBusDebugInfo()
+{
+  debug_info_ = main_bus_.GetDebugInfo();
+}
+
 void Emulator::PrintBusDebugInfo() const
 {
-  printf("Registers:\n A: %s\n B: %s\n C: %s\n D: %s\n M: %s\n S: %s\n L: %s\n"
+  printf("%s\n\n"
+         "Registers:\n A: %s\n B: %s\n C: %s\n D: %s\n M: %s\n S: %s\n L: %s\n"
          "PC: %s\n\nFlags:\nCY: %d\n Z: %d\n S: %d\n\nInput:\n0x80: %s\n0x81:"
          " %s\n",
+         debug_info_.instruction.c_str(),
          std::bitset<8>(debug_info_.r_A).to_string().c_str(),
          std::bitset<8>(debug_info_.r_B).to_string().c_str(),
          std::bitset<8>(debug_info_.r_C).to_string().c_str(),
@@ -78,9 +105,4 @@ void Emulator::PrintBusDebugInfo() const
          debug_info_.f_S,
          std::bitset<8>(debug_info_.m_input_switches[0]).to_string().c_str(),
          std::bitset<8>(debug_info_.m_input_switches[1]).to_string().c_str());
-}
-
-void Emulator::UpdateBusDebugInfo()
-{
-  debug_info_ = main_bus_->GetDebugInfo();
 }

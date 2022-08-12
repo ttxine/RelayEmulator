@@ -12,7 +12,7 @@ class ROM
     static const std::size_t kUnusedSize = 112;
 
   public:
-    ROM(std::ifstream& program, std::array<uint8_t, 2> input);
+    ROM(std::ifstream& program, std::array<uint8_t, 2> input = {});
 
   public:
     uint16_t Read(uint8_t addr) const;

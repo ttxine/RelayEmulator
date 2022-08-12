@@ -1,4 +1,5 @@
 #include <bitset>
+#include <iomanip>
 #include <sstream>
 
 #include <wx/wx.h>
@@ -53,15 +54,22 @@ class reMemoryPanel : public reBasePanel
       wxBoxSizer* sizer = new wxBoxSizer(wxHORIZONTAL);
 
       std::stringstream addr_stream;
-      addr_stream << "0x" << std::hex << addr;
+
+      addr_stream << "0x" << std::setfill('0') << std::setw(2) << std::hex
+                  << addr;
 
       addr_ = new wxStaticText(this, wxID_ANY, addr_stream.str(),
                                         wxDefaultPosition, wxSize(40, 30));
       value_ = new wxStaticText(this, wxID_ANY,
                                 std::bitset<width>(0).to_string());
+      value_hex_ = new wxStaticText(this, wxID_ANY,
+                                    std::string(width / 4, '0'));
 
       sizer->Add(addr_);
       sizer->Add(value_);
+      sizer->AddSpacer((16 - width) * 8);
+      sizer->AddSpacer(15);
+      sizer->Add(value_hex_);
 
       SetSizer(sizer);
     }
@@ -70,8 +78,15 @@ class reMemoryPanel : public reBasePanel
     void SetValue(int value)
     {
       value_->SetLabel(std::bitset<width>(value).to_string());
+
+      std::stringstream hex_stream;
+      hex_stream << std::hex << std::setfill('0') << std::setw(width / 4)
+                 << value;
+    
+      value_hex_->SetLabel(hex_stream.str());
     }
 
   private:
+    wxStaticText* value_hex_;
     wxStaticText* addr_;
 };
