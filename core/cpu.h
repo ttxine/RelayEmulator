@@ -1,6 +1,8 @@
 #pragma once
 #include <memory>
 
+#include "core/instructionset.h"
+
 class Bus;
 
 class CPU {
@@ -11,21 +13,6 @@ class CPU {
       kM, kS,
       kL,
       kPC
-    };
-
-    enum InstructionCode : uint16_t
-    {
-      kHALT       = 0x1000,
-      kNOP        = 0x0000,
-      kLOAD       = 0x2800,
-      kLOADI      = 0x2000,
-      kSTORE      = 0x3800,
-      kSTOREI     = 0x3000,
-      kCALL       = 0x8F00,
-      kJMP        = 0x8700,
-      kMOVI       = 0x8000,
-      kMOV        = 0x1800,
-      kALU        = 0x4000
     };
 
     enum class Flag
@@ -64,8 +51,6 @@ class CPU {
       return instruction_;
     }
 
-    std::string Disassemble(uint16_t instruction);
-
   private:
     void HALT();
     void NOP();
@@ -96,17 +81,6 @@ class CPU {
 
     bool CheckCondition(uint8_t cond);
     bool IsAddressRegister(uint8_t code) { return code > 4; };
-
-    bool IsHALT() { return instruction_ == kHALT; }
-    bool IsLOAD() { return (instruction_ & 0xF800) == kLOAD; }
-    bool IsLOADI() { return (instruction_ & 0xF800) == kLOADI; }
-    bool IsSTORE() { return (instruction_ & 0xF800) == kSTORE; }
-    bool IsSTOREI() { return (instruction_ & 0xF800) == kSTOREI; }
-    bool IsCALL() { return (instruction_ & 0x8F00) == kCALL; };
-    bool IsJMP() { return (instruction_ & 0x8700) == kJMP; };
-    bool IsMOVI() { return (instruction_ & 0x8000) == kMOVI; };
-    bool IsMOV() { return (instruction_ & 0x1800) == kMOV; };
-    bool IsALU() { return (instruction_ & 0xC000) == kALU; };
 
   private:
     Bus* main_bus_;

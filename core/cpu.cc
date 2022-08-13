@@ -31,16 +31,16 @@ void CPU::Fetch()
 
 void CPU::Decode()
 {
-  if (IsALU()) ALU();
-  else if (IsHALT()) HALT();
-  else if (IsLOAD()) LOAD();
-  else if (IsLOADI()) LOADI();
-  else if (IsSTORE()) STORE();
-  else if (IsSTOREI()) STOREI();
-  else if (IsCALL()) CALL();
-  else if (IsJMP()) JMP();
-  else if (IsMOVI()) MOVI();
-  else if (IsMOV()) MOV();
+  if (is_ALU(instruction_)) ALU();
+  else if (is_HALT(instruction_)) HALT();
+  else if (is_LOAD(instruction_)) LOAD();
+  else if (is_LOADI(instruction_)) LOADI();
+  else if (is_STORE(instruction_)) STORE();
+  else if (is_STOREI(instruction_)) STOREI();
+  else if (is_CALL(instruction_)) CALL();
+  else if (is_JMP(instruction_)) JMP();
+  else if (is_MOVI(instruction_)) MOVI();
+  else if (is_MOV(instruction_)) MOV();
   else NOP();
 }
 
@@ -156,10 +156,6 @@ void CPU::ALU()
   bool bIsUnaryALU = (instruction_ & 0x7800) == 0x7800;
 
   ++PC_;
-
-  uint8_t res;
-  bool i = (instruction_ & 0x0080) >> 7;
-  bool r = (instruction_ & 0x0008) >> 3;
 
   if (bIsUnaryALU) UnaryAlU();
   else BinaryALU();
@@ -409,230 +405,5 @@ void CPU::SetFlag(Flag flag, bool value)
     case Flag::kCY: carry_ = value; break;
     case Flag::kZ: zero_ = value; break;
     default: sign_ = value; break;
-  }
-}
-
-std::string CPU::Disassemble(uint16_t instruction)
-{
-  const std::string kUnknown = "Unknown";
-
-  auto GetRegisterName = [](uint8_t code) -> std::string
-  {
-    switch (RegisterCode(code))
-    {
-      case kA: return "A";
-      case kB: return "B";
-      case kC: return "C";
-      case kD: return "D";
-      case kM: return "M";
-      case kS: return "S";
-      case kL: return "L";
-      default: return "PC";
-    }
-  };
-
-  auto GetConditionName = [](uint8_t code) -> std::string
-  {
-    switch (code)
-    {
-      case 0b000: return "A";
-      case 0b001: return "Z";
-      case 0b010: return "NS";
-      case 0b011: return "C";
-      case 0b100: return "NC";
-      case 0b101: return "S";
-      case 0b110: return "NZ";
-      default: return "";
-    }
-  };
-
-  auto ToHexString = [](unsigned int val)
-  {
-    std::stringstream hex;
-    hex << "0x" << std::hex << val;
-
-    return hex.str();
-  };
-
-  if ((instruction & 0xC000) == kALU)
-  {
-    if ((instruction & 0x3800) == 0x3800)
-    {
-      uint8_t code = (instruction & 0x0006) >> 1;
-      uint8_t Gd = (instruction & 0x0700) >> 8;
-      uint8_t Gs = (instruction & 0x0070) >> 4;
-      bool r = (instruction & 0x0008) >> 3;
-
-      std::string instruction_name;
-
-      switch (code)
-      {
-        case 0: instruction_name = "NOT"; break;
-        case 1: instruction_name = "ROR"; break;
-        case 2: instruction_name = "SHR"; break;
-        case 3: instruction_name = "RCR"; break;
-        default: return kUnknown;
-      }
-
-      if (r)
-      {
-        return instruction_name + " F, " + GetRegisterName(Gs);
-      }
-      else
-      {
-        return instruction_name + " " + GetRegisterName(Gd) + ", " + GetRegisterName(Gs);
-      }
-    }
-    else
-    {
-      uint8_t code = (instruction & 0x3800) >> 11;
-      uint8_t Gd = (instruction & 0x0700) >> 8;
-      uint8_t Gs1 = (instruction & 0x0070) >> 4;
-      uint8_t Op2 = (instruction & 0x0007);
-      bool r = (instruction & 0x0008) >> 3;
-      bool i = (instruction & 0x0080) >> 7;
-
-      std::string instruction_name;
-
-      switch (code)
-      {
-        case 0: instruction_name = "ADC"; break;
-        case 1: instruction_name = "ADD"; break;
-        case 2: instruction_name = "SBC"; break;
-        case 3: instruction_name = "SUB"; break;
-        case 4: instruction_name = "AND"; break;
-        case 5: instruction_name = "OR"; break;
-        case 6: instruction_name = "XOR"; break;
-        default: return kUnknown;
-      }
-
-      std::string Op2_name;
-
-      if (i)
-      {
-        Op2_name = std::to_string(Op2);
-      }
-      else
-      {
-        Op2_name = GetRegisterName(Op2);
-      }
-
-      if (r)
-      {
-        return instruction_name + " F, " + GetRegisterName(Gs1) + ", " + Op2_name;
-      }
-      else
-      {
-        return instruction_name + " " + GetRegisterName(Gd) + ", " + GetRegisterName(Gs1) + ", " + Op2_name;
-      }
-    }
-  }
-  else if (instruction == kHALT)
-  {
-    return "HALT";
-  }
-  else if (instruction == kNOP)
-  {
-    return "NOP";
-  }
-  else if ((instruction & 0xF800) == kLOAD)
-  {
-    uint8_t G = (instruction & 0x0700) >> 8;
-    uint8_t P = instruction & 0x0007;
-
-    return "LOAD " + GetRegisterName(G) + ", " + GetRegisterName(P);
-  }
-  else if ((instruction & 0xF800) == kLOADI)
-  {
-    uint8_t G = (instruction & 0x0700) >> 8;
-    uint8_t Imm = instruction & 0x00FF;
-
-    return "LOAD " + GetRegisterName(G) + ", " + ToHexString(Imm);
-  }
-  else if ((instruction & 0xF800) == kSTORE)
-  {
-    uint8_t G = (instruction & 0x0700) >> 8;
-    uint8_t P = instruction & 0x0007;
-
-    return "STORE " + GetRegisterName(G) + ", " + GetRegisterName(P);
-  }
-  else if ((instruction & 0xF800) == kSTOREI)
-  {
-    uint8_t G = (instruction & 0x0700) >> 8;
-    uint8_t Imm  = instruction & 0x00FF;
-
-    return "STORE " + GetRegisterName(G) + ", " + std::to_string(Imm);
-  }
-  else if ((instruction & 0x8F00) == kCALL)
-  {
-    uint8_t cond = (instruction & 0x7000) >> 12;
-    uint8_t Imm = instruction & 0x00FF;
-
-    std::string cond_name = GetConditionName(cond);
-
-    if (cond_name == "A")
-    {
-      return "CALL " + ToHexString(Imm);
-    }
-    else if (cond_name == "")
-    {
-      return kUnknown;
-    }
-    else
-    {
-      return "CALL " + cond_name + ", " + ToHexString(Imm);
-    }
-  }
-  else if ((instruction & 0x8700) == kJMP)
-  {
-    uint8_t cond = (instruction & 0x7000) >> 12;
-    uint8_t Imm = instruction & 0x00FF;
-
-    std::string cond_name = GetConditionName(cond);
-
-    if (cond_name == "A")
-    {
-      return "JMP " + ToHexString(Imm);
-    }
-    else if (cond_name == "")
-    {
-      return kUnknown;
-    }
-    else
-    {
-      return "JMP " + cond_name + ", " + ToHexString(Imm);
-    }
-  }
-  else if ((instruction & 0x8000) == kMOVI)
-  {
-    uint8_t cond = (instruction & 0x7000) >> 12;
-    uint8_t Gd = (instruction & 0x0700) >> 8;
-    uint8_t Imm = instruction & 0x00FF;
-
-    std::string cond_name = GetConditionName(cond);
-
-    if (cond_name == "A")
-    {
-      return "MOVI " + GetRegisterName(Gd) + ", " + ToHexString(Imm);
-    }
-    else if (cond_name == "")
-    {
-      return kUnknown;
-    }
-    else
-    {
-      return "MOVI " + cond_name + ", " + GetRegisterName(Gd) + ", " + ToHexString(Imm);
-    }
-  }
-  else if ((instruction & 0x1800) == kMOV)
-  {
-    uint8_t Gd = (instruction & 0x0700) >> 8;
-    uint8_t Gs = (instruction & 0x0070) >> 4;
-
-    return "MOV " + GetRegisterName(Gd) + ", " + GetRegisterName(Gs);
-  }
-  else
-  {
-    return kUnknown;
   }
 }

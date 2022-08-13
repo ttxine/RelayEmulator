@@ -13,6 +13,7 @@ set(SOURCES
     core/rom.cc
     core/cpu.cc
     core/bus.cc
+    core/disassembler.cc
     core/emulator.cc
     compiler/lexer.cc
     compiler/parser.cc

@@ -1,3 +1,4 @@
+#include <sstream>
 #include <algorithm>
 #include <stdexcept>
 
@@ -22,6 +23,14 @@ bool strisdigit(const std::string& str)
   }
 
   return true;
+}
+
+std::string to_hex_string(int val)
+{
+  std::stringstream hex;
+  hex << "0x" << std::hex << val;
+
+  return hex.str();
 }
 
 uint8_t asm_stoi(const std::string& Imm)

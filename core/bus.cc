@@ -1,6 +1,7 @@
 #include <stdexcept>
 
 #include "core/bus.h"
+#include "core/disassembler.h"
 
 Bus::Bus()
 {
@@ -62,7 +63,7 @@ Bus::DebugInfo Bus::GetDebugInfo() const
 {
   DebugInfo info;
 
-  info.instruction = cpu_->Disassemble(cpu_->GetInstructionRegister());
+  info.instruction = disassemble(cpu_->GetInstructionRegister());
 
   info.r_A = cpu_->GetRegister(CPU::kA);
   info.r_B = cpu_->GetRegister(CPU::kB);
