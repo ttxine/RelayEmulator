@@ -1,10 +1,12 @@
 #include "ui/mainform.h"
 #include "ui/inputdialog.h"
+#include "compiler/run.h"
 
 #include "ui/resources/run.xpm"
 #include "ui/resources/step.xpm"
 #include "ui/resources/load.xpm"
 #include "ui/resources/compileandload.xpm"
+#include "ui/resources/stop.xpm"
 #include "ui/resources/reset.xpm"
 #include "ui/resources/input.xpm"
 
@@ -13,13 +15,18 @@ wxBEGIN_EVENT_TABLE(reMainForm, wxFrame)
   EVT_TOOL(ID::ID_COMPILE_AND_LOAD, reMainForm::OnCompileAndLoad)
   EVT_TOOL(ID::ID_RUN, reMainForm::OnRun)
   EVT_TOOL(ID::ID_STEP, reMainForm::OnStep)
+  EVT_TOOL(ID::ID_STOP, reMainForm::OnStop)
   EVT_TOOL(ID::ID_RESET, reMainForm::OnReset)
   EVT_TOOL(ID::ID_INPUT, reMainForm::OnInput)
+  EVT_CLOSE(reMainForm::OnClose)
 wxEND_EVENT_TABLE()
 
 reMainForm::reMainForm()
     : wxFrame(nullptr, wxID_ANY, "RelayEmulator", wxDefaultPosition)
 {
+  SetFont(wxFont(11, wxFONTFAMILY_TELETYPE, wxFONTSTYLE_NORMAL,
+                 wxFONTWEIGHT_NORMAL));
+
   CreateMenuBar();
   CreateToolBar();
   CreateControls();
@@ -27,10 +34,12 @@ reMainForm::reMainForm()
   EnableRun(false);
   EnableStep(false);
   EnableInput(false);
+  EnableStop(false);
   EnableReset(false);
 
-  SetMinSize(wxSize(state_window_->GetSize().GetX(), 200));
-  SetSize(wxSize(state_window_->GetSize().GetX(), 600));
+  SetMinSize(wxSize(700, 200));
+  SetMaxSize(wxSize(700, GetMaxSize().GetY()));
+  SetSize(wxSize(700, 800));
 }
 
 void reMainForm::CreateMenuBar()
@@ -57,9 +66,12 @@ wxToolBar* reMainForm::CreateToolBar(long style, wxWindowID winid,
                                      const wxString& name)
 {
   wxToolBar* tool_bar = wxFrame::CreateToolBar(style, winid, name);
+  speed_slider_ = new wxSlider(tool_bar, wxID_ANY, 1, 1, 20, wxDefaultPosition,
+                               wxSize(128, 16));
 
   tool_bar->AddTool(ID_RUN, "Run", wxBITMAP(run), "Run");
   tool_bar->AddTool(ID_STEP, "Step", wxBITMAP(step), "Step");
+  tool_bar->AddTool(ID_STOP, "Stop", wxBITMAP(stop), "Stop");
   tool_bar->AddTool(ID_RESET, "Reset", wxBITMAP(reset), "Reset");
   tool_bar->AddSeparator();
   tool_bar->AddTool(ID_LOAD, "Load", wxBITMAP(load), "Load");
@@ -67,8 +79,10 @@ wxToolBar* reMainForm::CreateToolBar(long style, wxWindowID winid,
                     wxBITMAP(compile_and_load), "Compile & Load");
   tool_bar->AddSeparator();
   tool_bar->AddTool(ID_INPUT, "Input", wxBITMAP(input), "Input");
-  tool_bar->Realize();
+  tool_bar->AddSeparator();
+  tool_bar->AddControl(speed_slider_, "Speed");
 
+  tool_bar->Realize();
   return tool_bar;
 }
 
@@ -78,17 +92,19 @@ void reMainForm::CreateControls()
   state_window_->SetScrollRate(0, 15);
   state_window_->SetBackgroundColour(wxColour(235, 231, 202, 10));
 
-  wxBoxSizer* sizer = new wxBoxSizer(wxVERTICAL);
+  wxBoxSizer* state_sizer = new wxBoxSizer(wxVERTICAL);
+  wxBoxSizer* reg_and_flag_sizer = new wxBoxSizer(wxHORIZONTAL);
 
   registers_ = new reRegisterStateBox(state_window_);
   flags_ = new reFlagStateBox(state_window_);
-  memory_ = new reMemoryStateBox(state_window_);
+  rom_ = new reROMStateBox(state_window_);
 
-  sizer->Add(registers_->GetStaticBoxSizer(), 0, wxALL, 15);
-  sizer->Add(flags_->GetStaticBoxSizer(), 0, wxALL, 15);
-  sizer->Add(memory_->GetStaticBoxSizer(), 0, wxALL, 15);
+  reg_and_flag_sizer->Add(registers_->GetStaticBoxSizer(), 1, wxEXPAND);
+  reg_and_flag_sizer->Add(flags_->GetStaticBoxSizer(), 0, wxLEFT, 15);
+  state_sizer->Add(reg_and_flag_sizer, 0, wxALL | wxEXPAND, 15);
+  state_sizer->Add(rom_->GetStaticBoxSizer(), 0, wxALL | wxEXPAND, 15);
 
-  state_window_->SetSizerAndFit(sizer);
+  state_window_->SetSizerAndFit(state_sizer);
 }
 
 void reMainForm::EnableRun(bool enable)
@@ -121,6 +137,11 @@ void reMainForm::EnableReset(bool enable)
   GetToolBar()->EnableTool(ID_RESET, enable);
 }
 
+void reMainForm::EnableStop(bool enable)
+{
+  GetToolBar()->EnableTool(ID_STOP, enable);
+}
+
 void reMainForm::Update()
 {
   Bus::DebugInfo info = emulator_.GetBusDebugInfo();
@@ -138,29 +159,33 @@ void reMainForm::Update()
   flags_->SetZValue(info.f_Z);
   flags_->SetCYValue(info.f_CY);
 
-  memory_->SetProgramDataValues(info.m_program_data);
-  memory_->SetInputSwitchesValues(info.m_input_switches);
-  memory_->SetUnusedValues(info.m_unused);
+  rom_->SetProgramDataValues(info.m_program_data);
+  rom_->SetInputSwitchesValues(info.m_input_switches);
+  rom_->SetUnusedValues(info.m_unused);
 }
 
-void reMainForm::OnLoad(wxCommandEvent& event)
+void reMainForm::Stop()
 {
-  wxFileDialog file_dialog(this, "Open binary file with program", "", "", "",
-                           wxFD_OPEN | wxFD_FILE_MUST_EXIST);
+  emulator_.Reset();
+  EnableRun();
+  EnableStep();
+  EnableInput();
+  EnableLoad();
+  EnableReset();
+  EnableStop(false);
 
-  if (file_dialog.ShowModal() == wxID_CANCEL)
-  {
-    return;
-  }
+  state_ == State::kWaiting;
+}
 
-  std::string path = file_dialog.GetPath().ToStdString();
+void reMainForm::Load(const wxString& path)
+{
   try
   {
-    emulator_.Load(path);
+    emulator_.Load(path.ToStdString());
   }
   catch (const std::runtime_error& e)
   {
-    Raise(e.what());
+    Raise(std::string("emulator: ") + e.what());
   }
 
   SetTitle("RelayEmulator - " + path);
@@ -170,12 +195,6 @@ void reMainForm::OnLoad(wxCommandEvent& event)
   EnableInput();
 
   Update();
-  event.Skip();
-}
-
-void reMainForm::OnCompileAndLoad(wxCommandEvent& event)
-{
-  OnLoad(event);
 }
 
 void reMainForm::Raise(const std::string& msg)
@@ -184,7 +203,68 @@ void reMainForm::Raise(const std::string& msg)
                           wxICON_ERROR | wxCANCEL);
 
   err_msg.ShowModal();
-  Reset();
+  Stop();
+}
+
+void reMainForm::OnLoad(wxCommandEvent& event)
+{
+  wxFileDialog file_dialog(this, "Open binary file with program", "", "", "",
+                           wxFD_OPEN | wxFD_FILE_MUST_EXIST);
+
+  if (!(file_dialog.ShowModal() == wxID_CANCEL))
+  {
+    Load(file_dialog.GetPath());
+  }
+
+  event.Skip();
+}
+
+void reMainForm::OnCompileAndLoad(wxCommandEvent& event)
+{
+  wxFileDialog file_dialog(this, "Open assembler source file", "", "", "ASM files (*.s;*.asm;*.S)|*.s;*.asm;*.S",
+                           wxFD_OPEN | wxFD_FILE_MUST_EXIST);
+
+  if (!(file_dialog.ShowModal() == wxID_CANCEL))
+  {
+    wxString path;
+    try
+    {
+      path = run_compiler(file_dialog.GetPath().ToStdString());
+    }
+    catch (const std::runtime_error& e)
+    {
+      Raise(e.what());
+    }
+
+    Load(path);
+  }
+
+  event.Skip();
+}
+
+void reMainForm::RunEmulatorThread()
+{
+  while (emulator_.GetCurrentState() != Emulator::State::kStopped)
+  {
+    std::this_thread::sleep_for(std::chrono::duration<int, std::milli>(
+        kMillisecondsPerCycle / speed_slider_->GetValue()));
+
+    emulator_.Step();
+    CallAfter([this]() { Update(); });
+
+    if (state_ == State::kClosing)
+    {
+      CallAfter([this]() { background_thread_.join(); Destroy(); });
+      return;
+    }
+    else if (state_ == State::kReseting)
+    {
+      CallAfter([this]() { background_thread_.join(); Stop(); });
+      return;
+    }
+  }
+
+  CallAfter([this]() { background_thread_.join(); Stop(); });
 }
 
 void reMainForm::OnRun(wxCommandEvent& event)
@@ -192,14 +272,11 @@ void reMainForm::OnRun(wxCommandEvent& event)
   EnableStep(false);
   EnableLoad(false);
   EnableInput(false);
-  emulator_.Run();
+  EnableRun(false);
+  EnableStop();
 
-  Update();
-  Reset();
-
-  EnableStep();
-  EnableLoad();
-  EnableInput();
+  state_ = State::kRunning;
+  background_thread_ = std::thread(&reMainForm::RunEmulatorThread, this);
 
   event.Skip();
 }
@@ -209,21 +286,37 @@ void reMainForm::OnStep(wxCommandEvent& event)
   EnableRun(false);
   EnableLoad(false);
   EnableInput(false);
-  EnableReset();
+  EnableStop();
+
+  state_ = State::kStepping;
   emulator_.Step();
 
   Update();
+  if (emulator_.GetCurrentState() == Emulator::State::kStopped)
+  {
+    Stop();
+  }
+
+  event.Skip();
+}
+
+void reMainForm::OnStop(wxCommandEvent& event)
+{
+  if (state_ == State::kRunning)
+  {
+    state_ = State::kReseting;
+  }
+  else if (state_ == State::kStepping)
+  {
+    Stop();
+  }
+
   event.Skip();
 }
 
 void reMainForm::OnReset(wxCommandEvent& event)
 {
-  Reset();
-
-  EnableRun();
-  EnableStep();
-  EnableInput();
-  EnableLoad();
+  Update();
   EnableReset(false);
 
   event.Skip();
@@ -233,14 +326,12 @@ void reMainForm::OnInput(wxCommandEvent& event)
 {
   reInputDialog* input_dialog = new reInputDialog(this);
 
-  if (input_dialog->ShowModal() == wxID_CANCEL)
+  if (!(input_dialog->ShowModal() == wxID_CANCEL))
   {
-    return;
+    emulator_.Input(input_dialog->GetFirst(), input_dialog->GetSecond());
+    Update();
   }
 
-  emulator_.Input(input_dialog->GetFirst(), input_dialog->GetSecond());
-
-  Update();
   event.Skip();
 }
 
@@ -250,7 +341,15 @@ void reMainForm::OnAbout(wxCommandEvent& event)
   event.Skip();
 }
 
-void reMainForm::Reset()
+void reMainForm::OnClose(wxCloseEvent& event)
 {
-  emulator_.Reset();
+  if (emulator_.GetCurrentState() == Emulator::State::kRunning)
+  {
+    event.Veto();
+    state_ = State::kClosing;
+  }
+  else
+  {
+    Destroy();
+  }
 }

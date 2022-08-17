@@ -73,7 +73,7 @@ static std::string disassemble_LOADI(uint16_t instruction)
   uint8_t G = (instruction & 0x0700) >> 8;
   uint8_t Imm = instruction & 0x00FF;
 
-  return "LOAD " + get_register_name(G) + ", " + to_hex_string(Imm);
+  return "LOAD " + get_register_name(G) + ", " + "0x" + to_hex_string(Imm);
 }
 
 
@@ -90,7 +90,7 @@ static std::string disassemble_STOREI(uint16_t instruction)
   uint8_t G = (instruction & 0x0700) >> 8;
   uint8_t Imm = instruction & 0x00FF;
 
-  return "STORE " + get_register_name(G) + ", " + to_hex_string(Imm);
+  return "STORE " + get_register_name(G) + ", " + "0x" + to_hex_string(Imm);
 }
 
 static std::string disassemble_CALL(uint16_t instruction)
@@ -103,11 +103,11 @@ static std::string disassemble_CALL(uint16_t instruction)
 
   if (cond_name == "A")
   {
-    return "CALL " + to_hex_string(Imm);
+    return "CALL 0x" + to_hex_string(Imm);
   }
   else
   {
-    return "CALL " + cond_name + to_hex_string(Imm);
+    return "CALL " + cond_name + "0x" + to_hex_string(Imm);
   }
 }
 
@@ -121,11 +121,11 @@ static std::string disassemble_JMP(uint16_t instruction)
 
   if (cond_name == "A")
   {
-    return "JMP " + to_hex_string(Imm);
+    return "JMP 0x" + to_hex_string(Imm);
   }
   else
   {
-    return "JMP " + cond_name + to_hex_string(Imm);
+    return "JMP " + cond_name + "0x" + to_hex_string(Imm);
   }
 }
 
@@ -140,12 +140,12 @@ static std::string disassemble_MOVI(uint16_t instruction)
 
   if (cond_name == "A")
   {
-    return "MOVI " + get_register_name(Gd) + ", " + to_hex_string(Imm);
+    return "MOVI " + get_register_name(Gd) + ", " + "0x" + to_hex_string(Imm);
   }
   else
   {
     return "MOVI " + cond_name + get_register_name(Gd) + ", " +
-           to_hex_string(Imm);
+           "0x" + to_hex_string(Imm);
   }
 }
 

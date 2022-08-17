@@ -47,7 +47,7 @@ void CPU::Decode()
 void CPU::HALT()
 {
   ++PC_;
-  main_bus_->StopClock();
+  bus_->StopClock();
 }
 
 void CPU::NOP()
@@ -350,12 +350,12 @@ void CPU::Reset()
 
 uint16_t CPU::Read(uint8_t addr)
 {
-  return main_bus_->Read(addr);
+  return bus_->Read(addr);
 }
 
 void CPU::Write(uint8_t addr, uint8_t value)
 {
-  return main_bus_->Write(addr, value);
+  return bus_->Write(addr, value);
 }
 
 uint8_t CPU::GetRegister(uint8_t code) const

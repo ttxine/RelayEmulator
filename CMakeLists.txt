@@ -22,8 +22,8 @@ set(SOURCES
     utils/tempfile.cc)
 
 set(UI_SOURCES
-    ui/panels.cc
     ui/statebox.cc
+    ui/staterow.cc
     ui/inputdialog.cc
     ui/mainform.cc)
 

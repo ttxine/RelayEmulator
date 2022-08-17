@@ -45,7 +45,7 @@ void reInputDialog::CreateControls()
 
 void reInputDialog::OnApply(wxCommandEvent& event)
 {
-  if(Validate() && TransferDataFromWindow())
+  if (Validate() && TransferDataFromWindow())
   {
     EndModal(wxID_APPLY);
   }

@@ -9,7 +9,7 @@ std::string run_compiler(const std::string& path)
 
   if (in.fail())
   {
-    throw std::runtime_error("error: can't open a file");
+    throw std::runtime_error("can't open a file");
   }
 
   std::string characters;
@@ -26,7 +26,7 @@ std::string run_compiler(const std::string& path)
   }
   catch (const std::runtime_error& e)
   {
-    std::cerr << "error: lexer: " << e.what() << std::endl;
+    std::cerr << "lexer: " << e.what() << std::endl;
     std::exit(EXIT_FAILURE);
   }
 
@@ -40,7 +40,7 @@ std::string run_compiler(const std::string& path)
   }
   catch (const std::runtime_error& e)
   {
-    std::cerr << "error: parser: " << e.what() << std::endl;
+    std::cerr << "parser: " << e.what() << std::endl;
     std::exit(EXIT_FAILURE);
   }
 
@@ -52,7 +52,7 @@ std::string run_compiler(const std::string& path)
   }
   catch (const std::runtime_error& e)
   {
-    std::cerr << "error: compiler: " << e.what() << std::endl;
+    std::cerr << "compiler: " << e.what() << std::endl;
     std::exit(EXIT_FAILURE);
   }
 

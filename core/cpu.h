@@ -23,7 +23,7 @@ class CPU {
     };
 
   public:
-    CPU(Bus* main_bus) : main_bus_(main_bus)
+    CPU(Bus* bus) : bus_(bus)
     {
     };
 
@@ -83,7 +83,7 @@ class CPU {
     bool IsAddressRegister(uint8_t code) { return code > 4; };
 
   private:
-    Bus* main_bus_;
+    Bus* bus_;
 
     uint16_t instruction_;
 

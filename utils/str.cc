@@ -1,4 +1,5 @@
 #include <sstream>
+#include <iomanip>
 #include <algorithm>
 #include <stdexcept>
 
@@ -25,10 +26,10 @@ bool strisdigit(const std::string& str)
   return true;
 }
 
-std::string to_hex_string(int val)
+std::string to_hex_string(int val, int width)
 {
   std::stringstream hex;
-  hex << "0x" << std::hex << val;
+  hex << std::setw(width) << std::setfill('0') << std::hex << val;
 
   return hex.str();
 }

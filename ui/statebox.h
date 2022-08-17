@@ -1,16 +1,19 @@
 #include <array>
+#include <memory>
 
 #include <wx/wx.h>
 
-#include "ui/panels.h"
+#include "ui/staterow.h"
 #include "core/rom.h"
 
 class reBaseStateBox : public wxStaticBox
 {
   public:
-    reBaseStateBox(wxWindow *parent, const wxString& label);
+    reBaseStateBox(wxWindow* parent, const wxString& label, int orient);
 
   public:
+    virtual void CreateRows() = 0;
+
     wxStaticBoxSizer* GetStaticBoxSizer() const
     {
       return sizer_;
@@ -41,14 +44,33 @@ class reRegisterStateBox : public reBaseStateBox
     void SetPCValue(uint8_t value) { PC_->SetValue(value); }
 
   private:
-    reRegisterPanel* A_;
-    reRegisterPanel* B_;
-    reRegisterPanel* C_;
-    reRegisterPanel* D_;
-    reRegisterPanel* M_;
-    reRegisterPanel* S_;
-    reRegisterPanel* L_;
-    reRegisterPanel* PC_;
+    void CreateRows();
+    void CreateSubSizers();
+    reRegisterStateRow* AddRowToLeft(const wxString& label);
+    reRegisterStateRow* AddRowToRight(const wxString& label);
+
+  private:
+    reRegisterStateRow* A_;
+    reRegisterStateRow* B_;
+    reRegisterStateRow* C_;
+    reRegisterStateRow* D_;
+    reRegisterStateRow* M_;
+    reRegisterStateRow* S_;
+    reRegisterStateRow* L_;
+    reRegisterStateRow* PC_;
+
+    wxBoxSizer* left_label_column_ = new wxBoxSizer(wxVERTICAL);
+    wxBoxSizer* left_first_nibble_column_ = new wxBoxSizer(wxVERTICAL);
+    wxBoxSizer* left_second_nibble_column_ = new wxBoxSizer(wxVERTICAL);
+    wxBoxSizer* left_hex_column_ = new wxBoxSizer(wxVERTICAL);
+    wxBoxSizer* left_signed_column_ = new wxBoxSizer(wxVERTICAL);
+    wxBoxSizer* left_unsigned_column_ = new wxBoxSizer(wxVERTICAL);
+    wxBoxSizer* right_label_column_ = new wxBoxSizer(wxVERTICAL);
+    wxBoxSizer* right_first_nibble_column_ = new wxBoxSizer(wxVERTICAL);
+    wxBoxSizer* right_second_nibble_column_ = new wxBoxSizer(wxVERTICAL);
+    wxBoxSizer* right_hex_column_ = new wxBoxSizer(wxVERTICAL);
+    wxBoxSizer* right_signed_column_ = new wxBoxSizer(wxVERTICAL);
+    wxBoxSizer* right_unsigned_column_ = new wxBoxSizer(wxVERTICAL);
 };
 
 class reFlagStateBox : public reBaseStateBox
@@ -62,15 +84,22 @@ class reFlagStateBox : public reBaseStateBox
     void SetCYValue(uint8_t value) { CY_->SetValue(value); }
 
   private:
-    reFlagPanel* S_;
-    reFlagPanel* Z_;
-    reFlagPanel* CY_;
+    void CreateRows();
+    reFlagStateRow* AddRow(const wxString& label);
+
+  private:
+    reFlagStateRow* S_;
+    reFlagStateRow* Z_;
+    reFlagStateRow* CY_;
+
+    wxBoxSizer* label_column_ = new wxBoxSizer(wxVERTICAL);
+    wxBoxSizer* value_column_ = new wxBoxSizer(wxVERTICAL);
 };
 
-class reMemoryStateBox : public reBaseStateBox
+class reROMStateBox : public reBaseStateBox
 {
   public:
-    reMemoryStateBox(wxWindow *parent);
+    reROMStateBox(wxWindow *parent);
 
   public:
     void SetProgramDataValues(
@@ -101,7 +130,22 @@ class reMemoryStateBox : public reBaseStateBox
     }
 
   private:
-    std::array<reMemoryPanel<16>*, ROM::kProgramDataSize> program_;
-    std::array<reMemoryPanel<8>*, ROM::kInputSwitchesSize> input_;
-    std::array<reMemoryPanel<8>*, ROM::kUnusedSize> unused_;
+    void CreateRows();
+    void CreateSubSizers();
+    void AddNull();
+    void AddRow(uint8_t addr);
+
+  private:
+    std::array<reProgramDataStateRow*, ROM::kProgramDataSize> program_;
+    std::array<reInputSwitchesStateRow*, ROM::kInputSwitchesSize> input_;
+    std::array<reUnusedStateRow*, ROM::kUnusedSize> unused_;
+
+    wxSizer* addr_column_ = new wxBoxSizer(wxVERTICAL);
+    wxSizer* ls_byte_ms_nibble_column_ = new wxBoxSizer(wxVERTICAL);
+    wxSizer* ls_byte_ls_nibble_column_ = new wxBoxSizer(wxVERTICAL);
+    wxSizer* ls_byte_hex_column_ = new wxBoxSizer(wxVERTICAL);
+    wxSizer* ms_byte_ms_nibble_column_ = new wxBoxSizer(wxVERTICAL);
+    wxSizer* ms_byte_ls_nibble_column_ = new wxBoxSizer(wxVERTICAL);
+    wxSizer* ms_byte_hex_column_ = new wxBoxSizer(wxVERTICAL);
+    wxSizer* disassembled_column_ = new wxBoxSizer(wxVERTICAL);
 };

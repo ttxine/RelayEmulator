@@ -22,7 +22,7 @@ Emulator::Emulator(const std::string& program_path, bool debug,
 
 void Emulator::Run()
 {
-  while (!main_bus_.Stopped())
+  while (state_ != State::kStopped)
   {
     Step();
 
@@ -42,11 +42,21 @@ void Emulator::Run()
 
 void Emulator::Step()
 {
-  main_bus_.Clock();
+  if (state_ == State::kReady) state_ = State::kRunning;
 
-  if (debug_ || main_bus_.Stopped())
+  if (state_ == State::kRunning)
   {
-    UpdateBusDebugInfo();
+    main_bus_.Clock();
+
+    if (debug_ || main_bus_.Stopped())
+    {
+      if (main_bus_.Stopped()) state_ = State::kStopped;
+      UpdateBusDebugInfo();
+    }
+  }
+  else
+  {
+    throw std::runtime_error("CPU is halted or ROM isn't connected to bus");
   }
 }
 
@@ -54,6 +64,8 @@ void Emulator::Reset()
 {
   main_bus_.Reset();
   UpdateBusDebugInfo();
+
+  if (state_ != State::kUnloaded) state_ = State::kReady;
 }
 
 void Emulator::Load(const std::string& program_path)
@@ -67,6 +79,8 @@ void Emulator::Load(const std::string& program_path)
 
   main_bus_.ConnectROM(std::unique_ptr<ROM>(new ROM(program)));
   UpdateBusDebugInfo();
+
+  state_ = State::kReady;
 }
 
 void Emulator::Input(uint8_t first, uint8_t second)
