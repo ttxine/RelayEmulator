@@ -1,44 +1,36 @@
-#include <fstream>
+#include <memory>
+#include <stdexcept>
 
 #include "compiler/compiler.h"
 #include "utils/str.h"
-#include "utils/tempfile.h"
 
-std::string Compiler::Compile() const
+std::unique_ptr<TemporaryFile> Compiler::Compile() const
 {
-  std::string path = create_temporary_file();
-  std::ofstream file(path);
-
-  if (file.fail())
+  try
   {
-    throw std::runtime_error("can't open temporary file");
-  }
+    std::unique_ptr<TemporaryFile> file(new TemporaryFile);
 
-  for (Node node : root_.GetSubNodes())
-  {
-    if (IsInstruction(node))
+    for (Node node : root_.GetSubNodes())
     {
-      try
+      if (IsInstruction(node))
       {
         uint16_t opcode = AssembleInstruction(node);
 
-        file << static_cast<uint8_t>(opcode >> 8)
-             << static_cast<uint8_t>(opcode);
+        file->Write(static_cast<uint8_t>(opcode >> 8));
+        file->Write(static_cast<uint8_t>(opcode));
       }
-      catch (const std::runtime_error& e)
+      else if (!IsLabel(node))
       {
-        unlink_temporary_file(path);
-        throw;
+        throw std::runtime_error("instruction or label expected");
       }
     }
-    else if (!IsLabel(node))
-    {
-      unlink_temporary_file(path);
-      throw std::runtime_error("instruction or label expected");
-    }
-  }
 
-  return path;
+    return file;
+  }
+  catch (const std::runtime_error&)
+  {
+    throw;
+  }
 }
 
 uint16_t Compiler::AssembleInstruction(const Node& node) const

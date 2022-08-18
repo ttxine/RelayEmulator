@@ -56,7 +56,8 @@ void Emulator::Step()
   }
   else
   {
-    throw std::runtime_error("CPU is halted or ROM isn't connected to bus");
+    throw std::runtime_error("emulator: CPU is halted or ROM isn't connected "
+                             "to bus");
   }
 }
 
@@ -74,10 +75,19 @@ void Emulator::Load(const std::string& program_path)
 
   if (program.fail())
   {
-    throw std::runtime_error("can't open a file");
+    throw std::runtime_error("emulator: can't open a file \"" + program_path +
+                             "\"");
   }
 
-  main_bus_.ConnectROM(std::unique_ptr<ROM>(new ROM(program)));
+  try
+  {
+    main_bus_.ConnectROM(std::unique_ptr<ROM>(new ROM(program)));
+  }
+  catch(const std::runtime_error& e)
+  {
+    throw std::runtime_error("emulator: " + std::string(e.what()));
+  }
+
   UpdateBusDebugInfo();
 
   state_ = State::kReady;

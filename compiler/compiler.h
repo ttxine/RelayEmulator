@@ -3,6 +3,7 @@
 
 #include "compiler/ast.h"
 #include "utils/str.h"
+#include "utils/tempfile.h"
 
 class Compiler
 {
@@ -14,7 +15,7 @@ class Compiler
     }
 
   public:
-    std::string Compile() const;
+    std::unique_ptr<TemporaryFile> Compile() const;
 
   private:
     uint16_t AssembleInstruction(const Node& node) const;
