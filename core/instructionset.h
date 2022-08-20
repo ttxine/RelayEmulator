@@ -1,6 +1,8 @@
 #pragma once
 #include <cstdint>
 
+// Instruction codes without conditions and operands to determine each
+// instruction.
 enum InstructionCode : uint16_t
 {
   kHALT       = 0x1000,

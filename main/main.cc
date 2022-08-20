@@ -50,10 +50,11 @@ int main(int argc, char* argv[])
   {
     try
     {
-      std::unique_ptr<TemporaryFile> compiled = run_compiler(
+      TemporaryFile compiled = run_compiler(
           argv[optind]);
+      compiled.Close();
 
-      Emulator emu(compiled->GetPath(), debug, input);
+      Emulator emu(compiled.GetPath(), debug, input);
       emu.Run();
     }
     catch (const std::runtime_error& e)

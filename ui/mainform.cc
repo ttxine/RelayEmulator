@@ -182,19 +182,19 @@ void reMainForm::Load(const wxString& path)
   try
   {
     emulator_.Load(path.ToStdString());
+
+    SetTitle("RelayEmulator - " + path);
+
+    EnableRun();
+    EnableStep();
+    EnableInput();
+
+    Update();
   }
   catch (const std::runtime_error& e)
   {
-    Raise(std::string("emulator: ") + e.what());
+    Raise(e.what());
   }
-
-  SetTitle("RelayEmulator - " + path);
-
-  EnableRun();
-  EnableStep();
-  EnableInput();
-
-  Update();
 }
 
 void reMainForm::Raise(const std::string& msg)
@@ -203,7 +203,11 @@ void reMainForm::Raise(const std::string& msg)
                           wxICON_ERROR | wxCANCEL);
 
   err_msg.ShowModal();
-  Stop();
+
+  if (emulator_.GetCurrentState() == Emulator::State::kRunning)
+  {
+    Stop();
+  }
 }
 
 void reMainForm::OnLoad(wxCommandEvent& event)
@@ -221,22 +225,24 @@ void reMainForm::OnLoad(wxCommandEvent& event)
 
 void reMainForm::OnCompileAndLoad(wxCommandEvent& event)
 {
-  wxFileDialog file_dialog(this, "Open assembler source file", "", "", "ASM files (*.s;*.asm;*.S)|*.s;*.asm;*.S",
+  wxFileDialog file_dialog(this, "Open assembler source file", "", "",
+                           "ASM files (*.s;*.asm;*.S)|*.s;*.asm;*.S",
                            wxFD_OPEN | wxFD_FILE_MUST_EXIST);
 
   if (!(file_dialog.ShowModal() == wxID_CANCEL))
   {
-    wxString path;
     try
     {
-      path = run_compiler(file_dialog.GetPath().ToStdString());
+      TemporaryFile compiled = run_compiler(
+          file_dialog.GetPath().ToStdString());
+      compiled.Close();
+
+      Load(compiled.GetPath());
     }
     catch (const std::runtime_error& e)
     {
       Raise(e.what());
     }
-
-    Load(path);
   }
 
   event.Skip();

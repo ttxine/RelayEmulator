@@ -17,7 +17,7 @@ void Bus::ConnectROM(std::unique_ptr<ROM> rom)
 {
   if (!rom)
   {
-    throw std::runtime_error("invalid ROM");
+    throw std::runtime_error("can't connect ROM to Bus: invalid ROM");
   }
 
   rom_ = std::move(rom);
@@ -25,7 +25,7 @@ void Bus::ConnectROM(std::unique_ptr<ROM> rom)
 
 void Bus::Clock()
 {
-  cpu_->Clock();
+  if (!Stopped()) cpu_->Clock();
 }
 
 void Bus::StopClock()
@@ -38,22 +38,22 @@ bool Bus::Stopped() const
   return stopped_;
 }
 
-uint16_t Bus::Read(uint8_t addr) const
+uint16_t Bus::Read(uint8_t addr) const noexcept
 {
   return rom_->Read(addr);
 }
 
-void Bus::Write(uint8_t addr, uint8_t value)
+void Bus::Write(uint8_t addr, uint8_t value) noexcept
 {
   rom_->Write(addr, value);
 }
 
-void Bus::Input(uint8_t first, uint8_t second)
+void Bus::Input(uint8_t first, uint8_t second) noexcept
 {
   rom_->Input(first, second);
 }
 
-void Bus::Reset()
+void Bus::Reset() noexcept
 {
   stopped_ = false;
   cpu_->Reset();

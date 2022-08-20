@@ -15,7 +15,7 @@ class Compiler
     }
 
   public:
-    std::unique_ptr<TemporaryFile> Compile() const;
+    TemporaryFile Compile() const;
 
   private:
     uint16_t AssembleInstruction(const Node& node) const;

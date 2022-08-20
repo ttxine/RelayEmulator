@@ -17,7 +17,7 @@ Root Parser::Parse()
 
   while (cur_token_ < tokens_.end())
   {
-    root.AddSubNodes(ParseNextNode());
+    root.push_back(ParseNextNode());
   }
 
   return root;

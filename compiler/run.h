@@ -2,7 +2,7 @@
 #include "compiler/parser.h"
 #include "compiler/compiler.h"
 
-std::unique_ptr<TemporaryFile> run_compiler(const std::string& path)
+TemporaryFile run_compiler(const std::string& path)
 {
   std::ifstream in(path, std::ifstream::ate | std::ios::binary);
   std::streamsize bytes = in.tellg();
@@ -44,17 +44,14 @@ std::unique_ptr<TemporaryFile> run_compiler(const std::string& path)
     std::exit(EXIT_FAILURE);
   }
 
-  std::unique_ptr<TemporaryFile> out;
   try
   {
     Compiler compiler(root, labels);
-    out = compiler.Compile();
+    return compiler.Compile();
   }
   catch (const std::runtime_error& e)
   {
     std::cerr << "compiler: " << e.what() << std::endl;
     std::exit(EXIT_FAILURE);
   }
-
-  return out;
 }

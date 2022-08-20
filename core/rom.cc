@@ -17,13 +17,13 @@ ROM::ROM(std::ifstream& program, std::array<uint8_t, 2> input)
   Input(input[0], input[1]);
 }
 
-void ROM::Input(uint8_t first, uint8_t second)
+void ROM::Input(uint8_t first, uint8_t second) noexcept
 {
   input_switches_[0] = first;
   input_switches_[1] = second;
 }
 
-uint16_t ROM::Read(uint8_t addr) const
+uint16_t ROM::Read(uint8_t addr) const noexcept
 {
   if (addr < 0x80)
   {
@@ -39,6 +39,6 @@ uint16_t ROM::Read(uint8_t addr) const
   }
 }
 
-void ROM::Write(uint8_t addr, uint8_t value)
+void ROM::Write(uint8_t addr, uint8_t value) noexcept
 {
 }

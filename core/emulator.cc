@@ -4,6 +4,7 @@
 #include <iostream>
 
 #include "core/emulator.h"
+#include "utils/str.h"
 
 Emulator::Emulator(bool debug, bool GUI_enabled)
     : debug_(debug), GUI_enabled_(GUI_enabled)
@@ -22,6 +23,7 @@ Emulator::Emulator(const std::string& program_path, bool debug,
 
 void Emulator::Run()
 {
+  // Can be infinite if there is no HALT instruction in the program.
   while (state_ != State::kStopped)
   {
     Step();
@@ -61,7 +63,7 @@ void Emulator::Step()
   }
 }
 
-void Emulator::Reset()
+void Emulator::Reset() noexcept
 {
   main_bus_.Reset();
   UpdateBusDebugInfo();
@@ -93,7 +95,7 @@ void Emulator::Load(const std::string& program_path)
   state_ = State::kReady;
 }
 
-void Emulator::Input(uint8_t first, uint8_t second)
+void Emulator::Input(uint8_t first, uint8_t second) noexcept
 {
   main_bus_.Input(first, second);
   UpdateBusDebugInfo();
@@ -104,7 +106,7 @@ Bus::DebugInfo Emulator::GetBusDebugInfo() const
   return debug_info_;
 }
 
-void Emulator::UpdateBusDebugInfo()
+void Emulator::UpdateBusDebugInfo() noexcept
 {
   debug_info_ = main_bus_.GetDebugInfo();
 }

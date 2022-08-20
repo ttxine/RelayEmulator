@@ -17,7 +17,7 @@ class Lexer
 
   private:
     const std::string characters_;
-    std::pair<std::regex, Token> token_expressions_[41] = {
+    std::array<std::pair<std::regex, Token>, 41> token_expressions_ = {{
       { std::regex("^[ :\t\n]+"), Token::kWhiteSpace },
       { std::regex("^0x[0-9]+"), Token::kNumerical },
       { std::regex("^[0-9]+"), Token::kNumerical },
@@ -93,5 +93,5 @@ class Lexer
       { std::regex("^nz(?=\\W)", std::regex_constants::icase),
                    Token::kCondition },
       { std::regex("^[A-Za-z][A-Za-z0-9_]*"), Token::kIdentifier }
-    };
+    }};
 };

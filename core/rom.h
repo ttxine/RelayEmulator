@@ -1,6 +1,5 @@
 #pragma once
 #include <array>
-#include <memory>
 #include <cstdint>
 #include <fstream>
 
@@ -15,9 +14,9 @@ class ROM
     ROM(std::ifstream& program, std::array<uint8_t, 2> input = {});
 
   public:
-    uint16_t Read(uint8_t addr) const;
-    void Write(uint8_t addr, uint8_t value);
-    void Input(uint8_t first, uint8_t second);
+    uint16_t Read(uint8_t addr) const noexcept;
+    void Write(uint8_t addr, uint8_t value) noexcept;
+    void Input(uint8_t first, uint8_t second) noexcept;
 
   private:
     std::array<uint16_t, kProgramDataSize> program_data_ = {};

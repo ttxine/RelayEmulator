@@ -3,23 +3,11 @@
 #include "core/cpu.h"
 #include "core/emulator.h"
 
-bool CPU::CheckCondition(uint8_t cond)
-{
-  switch (cond)
-  {
-    case 0b000: return true;
-    case 0b001: return GetFlag(Flag::kZ);
-    case 0b010: return !GetFlag(Flag::kS);
-    case 0b011: return GetFlag(Flag::kCY);
-    case 0b100: return !GetFlag(Flag::kCY);
-    case 0b101: return GetFlag(Flag::kS);
-    case 0b110: return !GetFlag(Flag::kZ);
-    default: return false;
-  }
-}
-
 void CPU::Clock()
 {
+  // Each instruction requires 10 clock ticks, but only the result is important
+  // here, so all 10 of these are executed at a time.
+
   Fetch();
 }
 
@@ -330,7 +318,7 @@ uint8_t CPU::RCR(uint8_t Gs)
   return res;
 }
 
-void CPU::Reset()
+void CPU::Reset() noexcept
 {
   A_ = 0x00;
   B_ = 0x00;
@@ -348,14 +336,29 @@ void CPU::Reset()
   is_halted_ = false;
 }
 
-uint16_t CPU::Read(uint8_t addr)
+uint16_t CPU::Read(uint8_t addr) noexcept
 {
   return bus_->Read(addr);
 }
 
-void CPU::Write(uint8_t addr, uint8_t value)
+void CPU::Write(uint8_t addr, uint8_t value) noexcept
 {
   return bus_->Write(addr, value);
+}
+
+bool CPU::CheckCondition(uint8_t cond)
+{
+  switch (cond)
+  {
+    case 0b000: return true;
+    case 0b001: return GetFlag(Flag::kZ);
+    case 0b010: return !GetFlag(Flag::kS);
+    case 0b011: return GetFlag(Flag::kCY);
+    case 0b100: return !GetFlag(Flag::kCY);
+    case 0b101: return GetFlag(Flag::kS);
+    case 0b110: return !GetFlag(Flag::kZ);
+    default: return false;
+  }
 }
 
 uint8_t CPU::GetRegister(uint8_t code) const
@@ -394,7 +397,8 @@ bool CPU::GetFlag(Flag flag) const
   {
     case Flag::kCY: return carry_;
     case Flag::kZ: return zero_;
-    default: return sign_;
+    case Flag::kS: return sign_;
+    default: return false;
   }
 }
 
@@ -404,6 +408,7 @@ void CPU::SetFlag(Flag flag, bool value)
   {
     case Flag::kCY: carry_ = value; break;
     case Flag::kZ: zero_ = value; break;
-    default: sign_ = value; break;
+    case Flag::kS: sign_ = value; break;
+    default: break;
   }
 }

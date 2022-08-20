@@ -3,22 +3,37 @@
 
 #include "core/instructionset.h"
 
+// Forward declaration to prevent circular inclusion. This is necessary because
+// the Bus class and the CPU class have pointers to each other.
+
 class Bus;
 
 class CPU {
   public:
     enum RegisterCode : uint8_t
     {
+      // General purpose
       kA, kB, kC, kD,
+
+      // Memory access
       kM, kS,
+
+      // Register for subroutines return address and memory access
       kL,
+
+      // Program counter
       kPC
     };
 
     enum class Flag
     {
+      // Carry flag
       kCY,
+
+      // Zero flag
       kZ,
+
+      // Sign flag
       kS
     };
 
@@ -28,30 +43,34 @@ class CPU {
     };
 
   public:
+    // Performs current instruction.
     void Clock();
-    void Fetch();
-    void Decode();
-    void Reset();
+
+    // Sets all registers to 0 and is_halted to false.
+    void Reset() noexcept;
 
     uint8_t GetRegister(uint8_t code) const;
     void SetRegister(uint8_t code, uint8_t value);
     bool GetFlag(Flag flag) const;
     void SetFlag(Flag flag, bool value);
 
-    uint16_t Read(uint8_t addr);
-    void Write(uint8_t addr, uint8_t value);
+    uint16_t Read(uint8_t addr) noexcept;
+    void Write(uint8_t addr, uint8_t value) noexcept;
 
     bool Halted() const
     {
       return is_halted_;
     };
 
-    uint16_t GetInstructionRegister()
+    uint16_t GetInstructionRegister() const
     {
       return instruction_;
     }
 
   private:
+    void Fetch();
+    void Decode();
+
     void HALT();
     void NOP();
     void LOAD();
@@ -80,11 +99,15 @@ class CPU {
     void UnaryAlU();
 
     bool CheckCondition(uint8_t cond);
+
+    // Returns true if register is one of the memory pointers (M, S, L or PC).
     bool IsAddressRegister(uint8_t code) { return code > 4; };
 
   private:
+    // Bus has a smart pointer to the CPU, so no need to free bus_.
     Bus* bus_;
 
+    // Instruction register
     uint16_t instruction_;
 
     uint8_t A_ = 0x00;

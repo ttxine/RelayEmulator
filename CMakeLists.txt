@@ -29,13 +29,13 @@ set(UI_SOURCES
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-add_executable(relay_emulator ${SOURCES} main/main.cc)
-add_executable(relay_emulator_ui
+add_executable(relay-emulator ${SOURCES} main/main.cc)
+add_executable(relay-emulator-gui
                ${SOURCES}
                ${UI_SOURCES}
                ui/app.cc)
 
-target_include_directories(relay_emulator PRIVATE ${PROJECT_SOURCE_DIR})
+target_include_directories(relay-emulator PRIVATE ${PROJECT_SOURCE_DIR})
 
-target_include_directories(relay_emulator_ui PRIVATE ${PROJECT_SOURCE_DIR})
-target_link_libraries(relay_emulator_ui ${wxWidgets_LIBRARIES})
+target_include_directories(relay-emulator-gui PRIVATE ${PROJECT_SOURCE_DIR})
+target_link_libraries(relay-emulator-gui ${wxWidgets_LIBRARIES})

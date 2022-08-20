@@ -4,119 +4,57 @@
 #include "compiler/compiler.h"
 #include "utils/str.h"
 
-std::unique_ptr<TemporaryFile> Compiler::Compile() const
+TemporaryFile Compiler::Compile() const
+try
 {
-  try
-  {
-    std::unique_ptr<TemporaryFile> file(new TemporaryFile);
+  TemporaryFile file;
 
-    for (Node node : root_.GetSubNodes())
+  for (Node node : root_)
+  {
+    if (IsInstruction(node))
     {
-      if (IsInstruction(node))
-      {
-        uint16_t opcode = AssembleInstruction(node);
+      uint16_t opcode = AssembleInstruction(node);
 
-        file->Write(static_cast<uint8_t>(opcode >> 8));
-        file->Write(static_cast<uint8_t>(opcode));
-      }
-      else if (!IsLabel(node))
-      {
-        throw std::runtime_error("instruction or label expected");
-      }
+      file.Write(static_cast<uint8_t>(opcode >> 8));
+      file.Write(static_cast<uint8_t>(opcode));
     }
+    else if (!IsLabel(node))
+    {
+      throw std::runtime_error("instruction or label expected");
+    }
+  }
 
-    return file;
-  }
-  catch (const std::runtime_error&)
-  {
-    throw;
-  }
+  return file;
+}
+catch (const std::runtime_error&)
+{
+  throw;
 }
 
 uint16_t Compiler::AssembleInstruction(const Node& node) const
 {
   std::string str = strtolower(node.GetString());
 
-  if (str == "halt")
-  {
-    return AssembleHALT();
-  }
-  else if (str == "nop")
-  {
-    return AssembleNOP();
-  }
-  else if (str == "load")
-  {
-    return AssembleLOAD(node);
-  }
-  else if (str == "store")
-  {
-    return AssembleSTORE(node);
-  }
-  else if (str == "call")
-  {
-    return AssembleCALL(node);
-  }
-  else if (str == "jmp")
-  {
-    return AssembleJMP(node);
-  }
-  else if (str == "movi")
-  {
-    return AssembleMOVI(node);
-  }
-  else if (str == "mov")
-  {
-    return AssembleMOV(node);
-  }
-  else if (str == "adc")
-  {
-    return AssembleADC(node);
-  }
-  else if (str == "add")
-  {
-    return AssembleADD(node);
-  }
-  else if (str == "sbc")
-  {
-    return AssembleSBC(node);
-  }
-  else if (str == "sub")
-  {
-    return AssembleSUB(node);
-  }
-  else if (str == "and")
-  {
-    return AssembleAND(node);
-  }
-  else if (str == "or")
-  {
-    return AssembleOR(node);
-  }
-  else if (str == "xor")
-  {
-    return AssembleXOR(node);
-  }
-  else if (str == "not")
-  {
-    return AssembleNOT(node);
-  }
-  else if (str == "ror")
-  {
-    return AssembleROR(node);
-  }
-  else if (str == "shr")
-  {
-    return AssembleSHR(node);
-  }
-  else if (str == "rcr")
-  {
-    return AssembleRCR(node);
-  }
-  else
-  {
-    throw std::runtime_error("invalid instruction");
-  }
+  if (str == "halt") return AssembleHALT();
+  else if (str == "nop") return AssembleNOP();
+  else if (str == "load") return AssembleLOAD(node);
+  else if (str == "store") return AssembleSTORE(node);
+  else if (str == "call") return AssembleCALL(node);
+  else if (str == "jmp") return AssembleJMP(node);
+  else if (str == "movi") return AssembleMOVI(node);
+  else if (str == "mov") return AssembleMOV(node);
+  else if (str == "adc") return AssembleADC(node);
+  else if (str == "add") return AssembleADD(node);
+  else if (str == "sbc") return AssembleSBC(node);
+  else if (str == "sub") return AssembleSUB(node);
+  else if (str == "and") return AssembleAND(node);
+  else if (str == "or") return AssembleOR(node);
+  else if (str == "xor") return AssembleXOR(node);
+  else if (str == "not") return AssembleNOT(node);
+  else if (str == "ror") return AssembleROR(node);
+  else if (str == "shr") return AssembleSHR(node);
+  else if (str == "rcr") return AssembleRCR(node);
+  else throw std::runtime_error("invalid instruction");
 }
 
 inline uint16_t Compiler::AssembleHALT() const
