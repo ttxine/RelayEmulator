@@ -190,6 +190,8 @@ void reMainForm::Load(const wxString& path)
     EnableInput();
 
     Update();
+
+    last_input_ = { 0, 0 };
   }
   catch (const std::runtime_error& e)
   {
@@ -330,12 +332,17 @@ void reMainForm::OnReset(wxCommandEvent& event)
 
 void reMainForm::OnInput(wxCommandEvent& event)
 {
-  reInputDialog* input_dialog = new reInputDialog(this);
+  reInputDialog* input_dialog = new reInputDialog(this, last_input_[0],
+                                                  last_input_[1]);
 
   if (!(input_dialog->ShowModal() == wxID_CANCEL))
   {
     emulator_.Input(input_dialog->GetFirst(), input_dialog->GetSecond());
     Update();
+    EnableReset(false);
+
+    last_input_[0] = input_dialog->GetFirst();
+    last_input_[1] = input_dialog->GetSecond();
   }
 
   event.Skip();

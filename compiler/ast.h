@@ -14,7 +14,6 @@ class Node
 
   public:
     const std::vector<Node>& GetSubNodes() const { return sub_nodes_; }
-    void AddSubNodes(Node node) { sub_nodes_.push_back(node); }
     void SetSubNodes(std::vector<Node> sub_nodes) { sub_nodes_ = sub_nodes; }
 
     const std::string& GetString() const { return str_; }

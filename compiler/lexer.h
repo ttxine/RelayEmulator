@@ -17,13 +17,17 @@ class Lexer
 
   private:
     const std::string characters_;
-    std::array<std::pair<std::regex, Token>, 41> token_expressions_ = {{
+    std::array<std::pair<std::regex, Token>, 44> token_expressions_ = {{
       { std::regex("^[ :\t\n]+"), Token::kWhiteSpace },
-      { std::regex("^0x[0-9]+"), Token::kNumerical },
-      { std::regex("^[0-9]+"), Token::kNumerical },
+      { std::regex("^0x[0-9A-Fa-f]+(?=\\W)"), Token::kNumerical },
+      { std::regex("^0b[0-1]+(?=\\W)"), Token::kNumerical },
+      { std::regex("^0[0-7]+(?=\\W)"), Token::kNumerical },
+      { std::regex("^[0-9]+(?=\\W)"), Token::kNumerical },
       { std::regex("^;[^\n]*"), Token::kComment },
       { std::regex("^[A-Za-z_]+(?=:)"), Token::kLabel },
       { std::regex("^,"), Token::kComma },
+      { std::regex("^org(?=\\W)", std::regex_constants::icase),
+                   Token::kDirective },
       { std::regex("^halt(?=\\W)", std::regex_constants::icase),
                    Token::kInstruction },
       { std::regex("^nop(?=\\W)", std::regex_constants::icase),

@@ -8,11 +8,6 @@ Bus::Bus()
   cpu_ = std::unique_ptr<CPU>(new CPU(this));
 }
 
-Bus::Bus(std::unique_ptr<ROM> rom) : Bus()
-{
-  ConnectROM(std::move(rom));
-};
-
 void Bus::ConnectROM(std::unique_ptr<ROM> rom)
 {
   if (!rom)
@@ -45,7 +40,6 @@ uint16_t Bus::Read(uint8_t addr) const noexcept
 
 void Bus::Write(uint8_t addr, uint8_t value) noexcept
 {
-  rom_->Write(addr, value);
 }
 
 void Bus::Input(uint8_t first, uint8_t second) noexcept

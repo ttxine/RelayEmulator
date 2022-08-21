@@ -16,10 +16,12 @@ void reInputDialog::CreateControls()
   second_val.SetMin(-128);
   second_val.SetMax(255);
 
-  first_input_ = new wxTextCtrl(this, wxID_ANY, "0", wxDefaultPosition,
-                                wxDefaultSize, 0L, first_val, "0x80");
-  second_input_ = new wxTextCtrl(this, wxID_ANY, "0", wxDefaultPosition,
-                                  wxDefaultSize, 0L, second_val, "0x81");
+  first_input_ = new wxTextCtrl(this, wxID_ANY, std::to_string(first_),
+                                wxDefaultPosition, wxDefaultSize, 0L,
+                                first_val, "0x80");
+  second_input_ = new wxTextCtrl(this, wxID_ANY, std::to_string(second_),
+                                 wxDefaultPosition, wxDefaultSize, 0L,
+                                 second_val, "0x81");
 
   int input_height;
   first_input_->GetSize(nullptr, &input_height);

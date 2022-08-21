@@ -27,12 +27,15 @@ Node Parser::ParseNextNode()
 {
   switch (cur_token_->first)
   {
-    case Token::kLabel:
-      return ParseLabel();
     case Token::kInstruction:
       return ParseInstruction();
+    case Token::kLabel:
+      return ParseLabel();
+    case Token::kDirective:
+      return ParseDirective();
     default:
-      throw std::runtime_error("instruction or label expected");
+      throw std::runtime_error("instruction or label expected: \"" +
+                               cur_token_->second + "\"");
   }
 }
 
@@ -53,6 +56,16 @@ Node Parser::ParseOperand()
   return operand;
 }
 
+Node Parser::ParseDirective()
+{
+  Node directive(Token::kDirective, cur_token_->second);
+
+  ++cur_token_;
+  directive.SetSubNodes(TakeOneOperand());
+
+  return directive;
+}
+
 Node Parser::ParseInstruction()
 {
   Node instruction(Token::kInstruction, cur_token_->second);
@@ -61,29 +74,19 @@ Node Parser::ParseInstruction()
   switch (GetInstructionLength(instruction.GetString()))
   {
     case InstructionLength::kNoOperands:
-    {
       break;
-    }
     case InstructionLength::kTwoOperands:
-    {
       instruction.SetSubNodes(TakeTwoOperands());
       break;
-    }
     case InstructionLength::kThreeOperands:
-    {
       instruction.SetSubNodes(TakeThreeOperands());
       break;
-    }
     case InstructionLength::kTwoOperandsOptional:
-    {
       instruction.SetSubNodes(TakeTwoOperandsOptional());
       break;
-    }
     case InstructionLength::kThreeOperandsOptional:
-    {
       instruction.SetSubNodes(TakeThreeOperandsOptional());
       break;
-    }
   }
 
   ++cur_addr_;
@@ -102,6 +105,18 @@ Parser::InstructionLength Parser::GetInstructionLength(
 
   throw std::runtime_error("invalid instruction");
 };
+
+std::vector<Node> Parser::TakeOneOperand()
+{
+  if (IsTokenOperand(GetCurrentToken().first))
+  {
+    return { ParseOperand() };
+  }
+  else
+  {
+    throw std::runtime_error("operand expected");
+  }
+}
 
 std::vector<Node> Parser::TakeTwoOperands()
 {
@@ -282,6 +297,7 @@ void Parser::InitializeInstructions()
   instructions_["load"] = InstructionLength::kTwoOperands;
   instructions_["store"] = InstructionLength::kTwoOperands;
   instructions_["load"] = InstructionLength::kTwoOperands;
+  instructions_["call"] = InstructionLength::kTwoOperandsOptional;
   instructions_["jmp"] = InstructionLength::kTwoOperandsOptional;
   instructions_["movi"] = InstructionLength::kThreeOperandsOptional;
   instructions_["mov"] = InstructionLength::kTwoOperands;

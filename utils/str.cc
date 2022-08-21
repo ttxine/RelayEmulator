@@ -36,9 +36,17 @@ std::string to_hex_string(int val, int width)
 
 uint8_t asm_stoi(const std::string& Imm)
 {
-  if (!Imm.compare(0, 2, "0x"))
+  if (!Imm.compare(0, 2, "0x") || !Imm.compare(0, 2, "0X"))
   {
-    return std::stoi(Imm, nullptr, 16);
+    return std::stoi(std::string(Imm.begin() + 2, Imm.end()), nullptr, 16);
+  }
+  else if (!Imm.compare(0, 2, "0b") || !Imm.compare(0, 2, "0B"))
+  {
+    return std::stoi(std::string(Imm.begin() + 2, Imm.end()), nullptr, 2);
+  }
+  else if (!Imm.compare(0, 1, "0"))
+  {
+    return std::stoi(Imm, nullptr, 8);
   }
   else if (strisdigit(Imm))
   {

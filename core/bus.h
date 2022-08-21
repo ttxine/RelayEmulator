@@ -33,14 +33,15 @@ class Bus
 
   public:
     Bus();
-    Bus(std::unique_ptr<ROM> rom);
 
-    // Not copyable
+    // Movable only
     Bus(const Bus&) = delete;
     Bus& operator=(const Bus&) = delete;
+    Bus(Bus&&) = default;
+    Bus& operator=(Bus&&) = default;
 
   public:
-    // Used for easy program change.
+    // Used for easy program load.
     void ConnectROM(std::unique_ptr<ROM> rom);
 
     bool Stopped() const;

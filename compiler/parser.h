@@ -32,6 +32,7 @@ class Parser
     Node ParseNextNode();
     Node ParseLabel();
     Node ParseInstruction();
+    Node ParseDirective();
     Node ParseOperand();
 
     std::vector<Node> TakeOneOperand();
@@ -45,7 +46,8 @@ class Parser
 
     std::pair<Token, std::string> GetCurrentToken() const
     {
-      return *cur_token_;
+      if (cur_token_ < tokens_.end()) return *cur_token_;
+      else return { Token::kEOF, "" };
     }
 
     bool IsTokenOperand(Token token) const

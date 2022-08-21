@@ -22,6 +22,7 @@ TemporaryFile run_compiler(const std::string& path)
   try
   {
     Lexer lexer(characters);
+    characters.clear();
     tokens = lexer.Tokenize();
   }
   catch (const std::runtime_error& e)
@@ -35,6 +36,7 @@ TemporaryFile run_compiler(const std::string& path)
   try
   {
     Parser parser(tokens);
+    tokens.clear();
     root = parser.Parse();
     labels = parser.GetLabels();
   }

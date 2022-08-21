@@ -35,10 +35,7 @@ uint16_t ROM::Read(uint8_t addr) const noexcept
   }
   else
   {
-    return unused_[addr - 0x90];
+    // Unused
+    return 0x00;
   }
-}
-
-void ROM::Write(uint8_t addr, uint8_t value) noexcept
-{
 }

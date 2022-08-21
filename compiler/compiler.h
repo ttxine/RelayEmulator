@@ -15,12 +15,19 @@ class Compiler
     }
 
   public:
-    TemporaryFile Compile() const;
+    TemporaryFile Compile();
 
   private:
     uint16_t AssembleInstruction(const Node& node) const;
     uint8_t GetRegisterCode(const std::string& str) const;
     uint8_t GetConditionCode(const std::string& str) const;
+
+    void HandleDirective(const Node& node);
+
+    bool IsDirective(const Node& node) const
+    {
+      return node.GetTokenType() == Token::kDirective;
+    }
 
     bool IsInstruction(const Node& node) const
     {
@@ -32,12 +39,7 @@ class Compiler
       return node.GetTokenType() == Token::kLabel;
     }
 
-    bool IsOperandCondition(const Node& op) const
-    {
-      return op.GetTokenType() == Token::kCondition ||
-             (op.GetTokenType() == Token::kRegister &&
-             strtolower(op.GetString()) == "a");
-    }
+    bool IsOperandCondition(const Node& op) const;
 
     bool IsOperandNumerical(const Node& op) const
     {
@@ -82,4 +84,6 @@ class Compiler
   private:
     Root root_;
     std::unordered_map<std::string, int> labels_;
+
+    int origin_;
 };

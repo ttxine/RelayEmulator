@@ -78,6 +78,8 @@ class reMainForm : public wxFrame
     reFlagStateBox* flags_;
     reROMStateBox* rom_;
 
+    std::array<uint8_t, 2> last_input_ = {};
+
     Emulator emulator_ = { true, true };
     std::thread background_thread_;
 

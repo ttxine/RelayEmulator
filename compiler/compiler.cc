@@ -4,7 +4,7 @@
 #include "compiler/compiler.h"
 #include "utils/str.h"
 
-TemporaryFile Compiler::Compile() const
+TemporaryFile Compiler::Compile()
 try
 {
   TemporaryFile file;
@@ -18,9 +18,14 @@ try
       file.Write(static_cast<uint8_t>(opcode >> 8));
       file.Write(static_cast<uint8_t>(opcode));
     }
+    else if (IsDirective(node))
+    {
+      HandleDirective(node);
+    }
     else if (!IsLabel(node))
     {
-      throw std::runtime_error("instruction or label expected");
+      throw std::runtime_error("instruction or label expected: \"" +
+                               node.GetString() + "\"");
     }
   }
 
@@ -57,6 +62,14 @@ uint16_t Compiler::AssembleInstruction(const Node& node) const
   else throw std::runtime_error("invalid instruction");
 }
 
+void Compiler::HandleDirective(const Node& node)
+{
+  std::string str = strtolower(node.GetString());
+
+  if (str == "org") origin_ = asm_stoi(node.GetSubNodes()[0].GetString());
+  else throw std::runtime_error("invalid directive");
+}
+
 inline uint16_t Compiler::AssembleHALT() const
 {
   return 0x1000;
@@ -83,7 +96,7 @@ uint16_t Compiler::AssembleLOAD(const Node& node) const
     uint8_t G = GetRegisterCode(node.GetSubNodes()[0].GetString());
     uint8_t Imm = asm_stoi(node.GetSubNodes()[1].GetString());
 
-    return 0x2000 | G << 8 | Imm;
+    return 0x2000 | G << 8 | Imm + origin_;
   }
   else
   {
@@ -107,7 +120,7 @@ uint16_t Compiler::AssembleSTORE(const Node& node) const
     uint8_t G = GetRegisterCode(node.GetSubNodes()[0].GetString());
     uint8_t Imm = asm_stoi(node.GetSubNodes()[1].GetString());
 
-    return 0x3000 | G << 8 | Imm;
+    return 0x3000 | G << 8 | Imm + origin_;
   }
   else
   {
@@ -125,7 +138,7 @@ uint16_t Compiler::AssembleCALL(const Node& node) const
     uint8_t Cond = GetConditionCode(node.GetSubNodes()[0].GetString());
     uint8_t Imm = asm_stoi(node.GetSubNodes()[1].GetString());
 
-    return 0x8F00 | Cond << 12 | Imm;
+    return 0x8F00 | Cond << 12 | Imm + origin_;
   }
   else if (bNodeHasTwoOperands && IsOperandCondition(node.GetSubNodes()[0]) &&
            IsOperandIdentifier(node.GetSubNodes()[1]))
@@ -149,7 +162,7 @@ uint16_t Compiler::AssembleCALL(const Node& node) const
   {
     uint8_t Imm = asm_stoi(node.GetSubNodes()[0].GetString());
 
-    return 0x8F00 | Imm;
+    return 0x8F00 | Imm + origin_;
   }
   else if (IsOperandIdentifier(node.GetSubNodes()[0]))
   {
@@ -183,7 +196,7 @@ uint16_t Compiler::AssembleJMP(const Node& node) const
     uint8_t Cond = GetConditionCode(node.GetSubNodes()[0].GetString());
     uint8_t Imm = asm_stoi(node.GetSubNodes()[1].GetString());
 
-    return 0x8700 | Cond << 12 | Imm;
+    return 0x8700 | Cond << 12 | Imm + origin_;
   }
   else if (bNodeHasTwoOperands && IsOperandCondition(node.GetSubNodes()[0]) &&
            IsOperandIdentifier(node.GetSubNodes()[1]))
@@ -207,7 +220,7 @@ uint16_t Compiler::AssembleJMP(const Node& node) const
   {
     uint8_t Imm = asm_stoi(node.GetSubNodes()[0].GetString());
 
-    return 0x8700 | Imm;
+    return 0x8700 | Imm + origin_;
   }
   else if (IsOperandIdentifier(node.GetSubNodes()[0]))
   {
@@ -248,8 +261,8 @@ uint16_t Compiler::AssembleMOVI(const Node& node) const
   else if (IsOperandRegister(node.GetSubNodes()[0]) &&
            IsOperandNumerical(node.GetSubNodes()[1]))
   {
-    uint8_t Gd = GetRegisterCode(node.GetSubNodes()[1].GetString());
-    uint8_t Imm = asm_stoi(node.GetSubNodes()[2].GetString());
+    uint8_t Gd = GetRegisterCode(node.GetSubNodes()[0].GetString());
+    uint8_t Imm = asm_stoi(node.GetSubNodes()[1].GetString());
 
     return 0x8000 | Gd << 8 | Imm;
   }
@@ -409,4 +422,15 @@ uint8_t Compiler::GetConditionCode(const std::string& str) const
   else if (name == "s") return 5;
   else if (name == "nz") return 6;
   else throw std::runtime_error("invalid condition");
+}
+
+bool Compiler::IsOperandCondition(const Node& op) const
+{
+  bool bIsRegisterNameMatchesCondition = (
+      op.GetTokenType() == Token::kRegister &&
+      strtolower(op.GetString()) == "a" ||
+      strtolower(op.GetString()) == "c");
+
+  return op.GetTokenType() == Token::kCondition ||
+          bIsRegisterNameMatchesCondition;
 }
