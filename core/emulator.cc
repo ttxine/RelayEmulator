@@ -1,60 +1,48 @@
 #include <bitset>
 #include <memory>
-#include <array>
 #include <iostream>
+#include <arpa/inet.h>
 
 #include "core/emulator.h"
 #include "utils/str.h"
 
-Emulator::Emulator(bool debug, bool GUI_enabled)
-    : debug_(debug), GUI_enabled_(GUI_enabled)
+Emulator::Emulator(bool debug, bool gui_enabled)
+    : debug_(debug), gui_enabled_(gui_enabled)
 {
 }
 
 Emulator::Emulator(const std::string& program_path, bool debug,
-                   std::array<uint8_t, 2> input, bool GUI_enabled)
-    : Emulator(debug, GUI_enabled)
+                   std::array<uint8_t, 2> input, bool gui_enabled)
+    : Emulator(debug, gui_enabled)
 {
   Load(program_path);
   Input(input[0], input[1]);
-
-  UpdateBusDebugInfo();
 }
 
 void Emulator::Run()
 {
-  // Can be infinite if there is no HALT instruction in the program.
-  while (state_ != State::kStopped)
+  while (!main_bus_.Stopped())
   {
     Step();
 
-    if (!GUI_enabled_ && debug_)
+    if (!gui_enabled_ && debug_)
     {
-      PrintBusDebugInfo();
+      PrintDebugInfo();
       std::cin.get();
     }
   }
 
-  if (!GUI_enabled_ && !debug_)
+  if (!gui_enabled_ && !debug_)
   {
-    UpdateBusDebugInfo();
-    PrintBusDebugInfo();
+    PrintDebugInfo();
   }
 }
 
 void Emulator::Step()
 {
-  if (state_ == State::kReady) state_ = State::kRunning;
-
-  if (state_ == State::kRunning)
+  if (!main_bus_.Stopped())
   {
     main_bus_.Clock();
-
-    if (debug_ || main_bus_.Stopped())
-    {
-      if (main_bus_.Stopped()) state_ = State::kStopped;
-      UpdateBusDebugInfo();
-    }
   }
   else
   {
@@ -66,9 +54,6 @@ void Emulator::Step()
 void Emulator::Reset() noexcept
 {
   main_bus_.Reset();
-  UpdateBusDebugInfo();
-
-  if (state_ != State::kUnloaded) state_ = State::kReady;
 }
 
 void Emulator::Load(const std::string& program_path)
@@ -81,54 +66,49 @@ void Emulator::Load(const std::string& program_path)
                              "\"");
   }
 
-  try
+  std::array<uint16_t, ROM::kProgramDataSize> program_data = {};
+
+  uint16_t op;
+  for (int addr = 0; program.read(reinterpret_cast<char*>(&op), sizeof(op)) &&
+       addr < ROM::kProgramDataSize; ++addr)
   {
-    main_bus_.ConnectROM(std::unique_ptr<ROM>(new ROM(program)));
-  }
-  catch(const std::runtime_error& e)
-  {
-    throw std::runtime_error("emulator: " + std::string(e.what()));
+    program_data[addr] = ntohs(op);
   }
 
-  UpdateBusDebugInfo();
-
-  state_ = State::kReady;
+  main_bus_.ConnectROM(ROM(program_data));
 }
 
 void Emulator::Input(uint8_t first, uint8_t second) noexcept
 {
   main_bus_.Input(first, second);
-  UpdateBusDebugInfo();
 }
 
-Bus::DebugInfo Emulator::GetBusDebugInfo() const
+void Emulator::Stop() noexcept
 {
-  return debug_info_;
+  main_bus_.StopClock();
 }
 
-void Emulator::UpdateBusDebugInfo() noexcept
+void Emulator::PrintDebugInfo() const
 {
-  debug_info_ = main_bus_.GetDebugInfo();
-}
-
-void Emulator::PrintBusDebugInfo() const
-{
-  printf("%s\n\n"
-         "Registers:\n A: %s\n B: %s\n C: %s\n D: %s\n M: %s\n S: %s\n L: %s\n"
-         "PC: %s\n\nFlags:\nCY: %d\n Z: %d\n S: %d\n\nInput:\n0x80: %s\n0x81:"
-         " %s\n",
-         debug_info_.instruction.c_str(),
-         std::bitset<8>(debug_info_.r_A).to_string().c_str(),
-         std::bitset<8>(debug_info_.r_B).to_string().c_str(),
-         std::bitset<8>(debug_info_.r_C).to_string().c_str(),
-         std::bitset<8>(debug_info_.r_D).to_string().c_str(),
-         std::bitset<8>(debug_info_.r_M).to_string().c_str(),
-         std::bitset<8>(debug_info_.r_S).to_string().c_str(),
-         std::bitset<8>(debug_info_.r_L).to_string().c_str(),
-         std::bitset<8>(debug_info_.r_PC).to_string().c_str(),
-         debug_info_.f_CY,
-         debug_info_.f_Z,
-         debug_info_.f_S,
-         std::bitset<8>(debug_info_.m_input_switches[0]).to_string().c_str(),
-         std::bitset<8>(debug_info_.m_input_switches[1]).to_string().c_str());
+  Bus::DebugInfo info = GetDebugInfo();
+  std::printf("Instruction: %s\n\n"
+              "Registers:\n"
+              " A: %s     M: %s\n"
+              " B: %s     S: %s\n"
+              " C: %s     L: %s\n"
+              " D: %s    PC: %s\n\n"
+              "Flags:\n"
+              "CY: %d     Z: %d     S: %d\n",
+              info.instruction.c_str(),
+              std::bitset<8>(info.registers.A).to_string().c_str(),
+              std::bitset<8>(info.registers.M).to_string().c_str(),
+              std::bitset<8>(info.registers.B).to_string().c_str(),
+              std::bitset<8>(info.registers.S).to_string().c_str(),
+              std::bitset<8>(info.registers.C).to_string().c_str(),
+              std::bitset<8>(info.registers.L).to_string().c_str(),
+              std::bitset<8>(info.registers.D).to_string().c_str(),
+              std::bitset<8>(info.registers.PC).to_string().c_str(),
+              info.flags.CY,
+              info.flags.Z,
+              info.flags.S);
 }

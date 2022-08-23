@@ -13,7 +13,8 @@ TemporaryFile::TemporaryFile()
 
   if (fd == -1)
   {
-    throw std::runtime_error("can't open temporary file \"" + path_ + "\"");
+    throw std::runtime_error("can't create temporary file: " +
+                             std::string(strerror(errno)));
   }
 
   fd_ = fd;
@@ -23,30 +24,8 @@ TemporaryFile::TemporaryFile()
 
 TemporaryFile::~TemporaryFile()
 {
-  if (is_open_)
-  {
-    Close();
-  }
-
+  if (is_open_) Close();
   unlink(path_.c_str());
-}
-
-int8_t TemporaryFile::Read()
-{
-  int8_t readed;
-
-  int status = read(fd_, &readed, sizeof(readed));
-  if (status == -1)
-  {
-    throw std::runtime_error("can't read from temporary file \"" + path_ + 
-                             "\": " + std::string(strerror(errno)));
-  }
-  else if (status == 0)
-  {
-    return EOF;
-  }
-
-  return readed;
 }
 
 void TemporaryFile::Write(uint8_t to_write)

@@ -1,3 +1,4 @@
+#include <cassert>
 #include <stdexcept>
 
 #include "core/bus.h"
@@ -8,34 +9,26 @@ Bus::Bus()
   cpu_ = std::unique_ptr<CPU>(new CPU(this));
 }
 
-void Bus::ConnectROM(std::unique_ptr<ROM> rom)
-{
-  if (!rom)
-  {
-    throw std::runtime_error("can't connect ROM to Bus: invalid ROM");
-  }
-
-  rom_ = std::move(rom);
-}
-
 void Bus::Clock()
 {
   if (!Stopped()) cpu_->Clock();
 }
 
-void Bus::StopClock()
-{
-  stopped_ = true;
-}
-
-bool Bus::Stopped() const
-{
-  return stopped_;
-}
-
 uint16_t Bus::Read(uint8_t addr) const noexcept
 {
-  return rom_->Read(addr);
+  if (addr < ROM::kProgramDataSize)
+  {
+    return rom_.ReadProgramData(addr);
+  }
+  else if (addr < ROM::kProgramDataSize + ROM::kInputSwitchesSize)
+  {
+    return rom_.ReadInputSwitches(addr);
+  }
+  else
+  {
+    // Unused (read as 0)
+    return 0x00;
+  }
 }
 
 void Bus::Write(uint8_t addr, uint8_t value) noexcept
@@ -44,7 +37,7 @@ void Bus::Write(uint8_t addr, uint8_t value) noexcept
 
 void Bus::Input(uint8_t first, uint8_t second) noexcept
 {
-  rom_->Input(first, second);
+  rom_.Input(first, second);
 }
 
 void Bus::Reset() noexcept
@@ -59,35 +52,31 @@ Bus::DebugInfo Bus::GetDebugInfo() const
 
   info.instruction = disassemble(cpu_->GetInstructionRegister());
 
-  info.r_A = cpu_->GetRegister(CPU::kA);
-  info.r_B = cpu_->GetRegister(CPU::kB);
-  info.r_C = cpu_->GetRegister(CPU::kC);
-  info.r_D = cpu_->GetRegister(CPU::kD);
-  info.r_M = cpu_->GetRegister(CPU::kM);
-  info.r_S = cpu_->GetRegister(CPU::kS);
-  info.r_L = cpu_->GetRegister(CPU::kL);
-  info.r_PC = cpu_->GetRegister(CPU::kPC);
+  info.registers.A = cpu_->GetRegister(CPU::kA);
+  info.registers.B = cpu_->GetRegister(CPU::kB);
+  info.registers.C = cpu_->GetRegister(CPU::kC);
+  info.registers.D = cpu_->GetRegister(CPU::kD);
+  info.registers.M = cpu_->GetRegister(CPU::kM);
+  info.registers.S = cpu_->GetRegister(CPU::kS);
+  info.registers.L = cpu_->GetRegister(CPU::kL);
+  info.registers.PC = cpu_->GetRegister(CPU::kPC);
 
-  for (int addr = 0; addr < info.m_program_data.size(); ++addr)
+  info.flags.S = cpu_->GetFlag(CPU::Flag::kS);
+  info.flags.Z = cpu_->GetFlag(CPU::Flag::kZ);
+  info.flags.CY = cpu_->GetFlag(CPU::Flag::kCY);
+
+  for (int addr = 0; addr < info.memory.program_data.size(); ++addr)
   {
-    info.m_program_data[addr] = Read(addr);
+    info.memory.program_data[addr] = Read(addr);
   }
 
-  for (int addr = 0; addr < info.m_input_switches.size(); ++addr)
+  uint8_t input_first = Read(0x80);
+  uint8_t input_second = Read(0x81);
+  for (int i = 0; i < ROM::kInputSwitchesSize / 2; ++i)
   {
-    int offset = info.m_program_data.size();
-    info.m_input_switches[addr] = Read(addr + offset);
+    info.memory.input_switches[i * 2] = ((input_first << i) >> 7) & 0x01;
+    info.memory.input_switches[i * 2 + 1] = ((input_second << i) >> 7) & 0x01;
   }
-
-  for (int addr = 0; addr < info.m_program_data.size(); ++addr)
-  {
-    int offset = info.m_program_data.size() + info.m_input_switches.size();
-    info.m_unused[addr] = Read(addr + offset);
-  }
-
-  info.f_S = cpu_->GetFlag(CPU::Flag::kS);
-  info.f_Z = cpu_->GetFlag(CPU::Flag::kZ);
-  info.f_CY = cpu_->GetFlag(CPU::Flag::kCY);
 
   return info;
 };

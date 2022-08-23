@@ -142,26 +142,52 @@ void reMainForm::EnableStop(bool enable)
   GetToolBar()->EnableTool(ID_STOP, enable);
 }
 
+void reMainForm::RunEmulatorThread()
+{
+  auto FinalAction = [this]() { background_thread_.join(); Stop(); };
+
+  while (!emulator_.Stopped())
+  {
+    std::this_thread::sleep_for(std::chrono::duration<int, std::milli>(
+        kMillisecondsPerCycle / speed_slider_->GetValue()));
+
+    emulator_.Step();
+    CallAfter([this]() { Update(); });
+
+    if (state_ == State::kClosing)
+    {
+      CallAfter([this]() { background_thread_.join(); Destroy(); });
+      return;
+    }
+    else if (state_ == State::kStopping)
+    {
+      CallAfter(FinalAction);
+      return;
+    }
+  }
+
+  CallAfter(FinalAction);
+}
+
 void reMainForm::Update()
 {
-  Bus::DebugInfo info = emulator_.GetBusDebugInfo();
+  Bus::DebugInfo info = emulator_.GetDebugInfo();
 
-  registers_->SetAValue(info.r_A);
-  registers_->SetBValue(info.r_B);
-  registers_->SetCValue(info.r_C);
-  registers_->SetDValue(info.r_D);
-  registers_->SetMValue(info.r_M);
-  registers_->SetSValue(info.r_S);
-  registers_->SetLValue(info.r_L);
-  registers_->SetPCValue(info.r_PC);
+  registers_->SetAValue(info.registers.A);
+  registers_->SetBValue(info.registers.B);
+  registers_->SetCValue(info.registers.C);
+  registers_->SetDValue(info.registers.D);
+  registers_->SetMValue(info.registers.M);
+  registers_->SetSValue(info.registers.S);
+  registers_->SetLValue(info.registers.L);
+  registers_->SetPCValue(info.registers.PC);
 
-  flags_->SetSValue(info.f_S);
-  flags_->SetZValue(info.f_Z);
-  flags_->SetCYValue(info.f_CY);
+  flags_->SetSValue(info.flags.S);
+  flags_->SetZValue(info.flags.Z);
+  flags_->SetCYValue(info.flags.CY);
 
-  rom_->SetProgramDataValues(info.m_program_data);
-  rom_->SetInputSwitchesValues(info.m_input_switches);
-  rom_->SetUnusedValues(info.m_unused);
+  rom_->SetProgramDataValues(info.memory.program_data);
+  rom_->SetInputSwitchesValues(info.memory.input_switches);
 }
 
 void reMainForm::Stop()
@@ -182,21 +208,21 @@ void reMainForm::Load(const wxString& path)
   try
   {
     emulator_.Load(path.ToStdString());
-
-    SetTitle("RelayEmulator - " + path);
-
-    EnableRun();
-    EnableStep();
-    EnableInput();
-
-    Update();
-
-    last_input_ = { 0, 0 };
   }
   catch (const std::runtime_error& e)
   {
     Raise(e.what());
   }
+
+  SetTitle("RelayEmulator - " + path);
+
+  EnableRun();
+  EnableStep();
+  EnableInput();
+
+  Update();
+
+  last_input_ = { 0, 0 };
 }
 
 void reMainForm::Raise(const std::string& msg)
@@ -206,7 +232,7 @@ void reMainForm::Raise(const std::string& msg)
 
   err_msg.ShowModal();
 
-  if (emulator_.GetCurrentState() == Emulator::State::kRunning)
+  if (state_ == State::kRunning)
   {
     Stop();
   }
@@ -250,37 +276,13 @@ void reMainForm::OnCompileAndLoad(wxCommandEvent& event)
   event.Skip();
 }
 
-void reMainForm::RunEmulatorThread()
-{
-  while (emulator_.GetCurrentState() != Emulator::State::kStopped)
-  {
-    std::this_thread::sleep_for(std::chrono::duration<int, std::milli>(
-        kMillisecondsPerCycle / speed_slider_->GetValue()));
-
-    emulator_.Step();
-    CallAfter([this]() { Update(); });
-
-    if (state_ == State::kClosing)
-    {
-      CallAfter([this]() { background_thread_.join(); Destroy(); });
-      return;
-    }
-    else if (state_ == State::kReseting)
-    {
-      CallAfter([this]() { background_thread_.join(); Stop(); });
-      return;
-    }
-  }
-
-  CallAfter([this]() { background_thread_.join(); Stop(); });
-}
-
 void reMainForm::OnRun(wxCommandEvent& event)
 {
+  EnableRun(false);
   EnableStep(false);
   EnableLoad(false);
   EnableInput(false);
-  EnableRun(false);
+  EnableReset(false);
   EnableStop();
 
   state_ = State::kRunning;
@@ -294,13 +296,14 @@ void reMainForm::OnStep(wxCommandEvent& event)
   EnableRun(false);
   EnableLoad(false);
   EnableInput(false);
+  EnableReset(false);
   EnableStop();
 
   state_ = State::kStepping;
   emulator_.Step();
 
   Update();
-  if (emulator_.GetCurrentState() == Emulator::State::kStopped)
+  if (emulator_.Stopped())
   {
     Stop();
   }
@@ -312,7 +315,7 @@ void reMainForm::OnStop(wxCommandEvent& event)
 {
   if (state_ == State::kRunning)
   {
-    state_ = State::kReseting;
+    state_ = State::kStopping;
   }
   else if (state_ == State::kStepping)
   {
@@ -350,13 +353,13 @@ void reMainForm::OnInput(wxCommandEvent& event)
 
 void reMainForm::OnAbout(wxCommandEvent& event)
 {
-  wxLaunchDefaultBrowser("https://github.com/ttxine/RelayEmulator");
+  wxLaunchDefaultBrowser("https://github.com/Dovgalyuk/Relay");
   event.Skip();
 }
 
 void reMainForm::OnClose(wxCloseEvent& event)
 {
-  if (emulator_.GetCurrentState() == Emulator::State::kRunning)
+  if (state_ == State::kRunning)
   {
     event.Veto();
     state_ = State::kClosing;

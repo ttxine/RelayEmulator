@@ -142,10 +142,8 @@ void reROMStateBox::AddRow(uint8_t addr)
   else
   {
     int index = addr - program_.size() - input_.size();
-    unused_[index] = new reUnusedStateRow(this, addr, addr_column_,
-                                          ls_byte_ms_nibble_column_,
-                                          ls_byte_ls_nibble_column_,
-                                          ls_byte_hex_column_);
+    new reUnusedStateRow(this, addr, addr_column_, ls_byte_ms_nibble_column_,
+                         ls_byte_ls_nibble_column_, ls_byte_hex_column_);
     AddNull();
   }
 }

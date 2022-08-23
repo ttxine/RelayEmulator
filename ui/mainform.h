@@ -1,6 +1,6 @@
 #pragma once
+#include <array>
 #include <thread>
-#include <memory>
 
 #include <wx/wx.h>
 
@@ -26,7 +26,7 @@ class reMainForm : public wxFrame
       kWaiting,
       kRunning,
       kStepping,
-      kReseting,
+      kStopping,
       kClosing
     };
 

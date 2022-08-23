@@ -2,19 +2,10 @@
 
 #include "core/rom.h"
 
-ROM::ROM(std::ifstream& program, std::array<uint8_t, 2> input)
+ROM::ROM(const std::array<uint16_t, 128>& program,
+         const std::array<uint8_t, 2>& input)
+    : program_data_(program), input_switches_(input)
 {
-  uint16_t opcode = 0x0000;
-
-  uint8_t mem_used = 0;
-  while (program.read(reinterpret_cast<char*>(&opcode), sizeof(opcode)) &&
-         mem_used < kProgramDataSize)
-  {
-    program_data_[mem_used] = ntohs(opcode);
-    ++mem_used;
-  }
-
-  Input(input[0], input[1]);
 }
 
 void ROM::Input(uint8_t first, uint8_t second) noexcept
@@ -23,19 +14,28 @@ void ROM::Input(uint8_t first, uint8_t second) noexcept
   input_switches_[1] = second;
 }
 
-uint16_t ROM::Read(uint8_t addr) const noexcept
+uint16_t ROM::ReadProgramData(uint8_t addr) const noexcept
 {
-  if (addr < 0x80)
+  if (addr < kProgramDataSize)
   {
     return program_data_[addr];
   }
-  else if (addr < 0x90)
-  {
-    return input_switches_[addr - 0x80];
-  }
   else
   {
-    // Unused
-    return 0x00;
+    return 0x0000;
   }
+}
+
+uint8_t ROM::ReadInputSwitches(uint8_t addr) const noexcept
+{
+  uint8_t data = 0x00;
+
+  switch (addr)
+  {
+    case 0x80: data = input_switches_[0]; break;
+    case 0x81: data = input_switches_[1]; break;
+    default: break;
+  }
+
+  return data;
 }

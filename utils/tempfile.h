@@ -19,14 +19,14 @@ class TemporaryFile
     std::string GetPath() const { return path_; }
     bool IsOpen() const { return is_open_; }
 
-    int8_t Read();
     void Write(uint8_t to_write);
 
     // Close the file if it is no longer needed or before reopening.
     void Close();
 
   private:
-    int fd_;
     std::string path_;
+
+    int fd_;
     bool is_open_;
 };

@@ -14,15 +14,8 @@ class reBaseStateBox : public wxStaticBox
   public:
     virtual void CreateRows() = 0;
 
-    wxStaticBoxSizer* GetStaticBoxSizer() const
-    {
-      return sizer_;
-    }
-
-    void SetStaticBoxSizer(wxStaticBoxSizer* sizer)
-    {
-      sizer_ = sizer;
-    }
+    wxStaticBoxSizer* GetStaticBoxSizer() const { return sizer_; }
+    void SetStaticBoxSizer(wxStaticBoxSizer* sizer) { sizer_ = sizer; }
 
   protected:
     wxStaticBoxSizer* sizer_;
@@ -54,6 +47,7 @@ class reRegisterStateBox : public reBaseStateBox
     reRegisterStateRow* B_;
     reRegisterStateRow* C_;
     reRegisterStateRow* D_;
+
     reRegisterStateRow* M_;
     reRegisterStateRow* S_;
     reRegisterStateRow* L_;
@@ -65,6 +59,7 @@ class reRegisterStateBox : public reBaseStateBox
     wxBoxSizer* left_hex_column_ = new wxBoxSizer(wxVERTICAL);
     wxBoxSizer* left_signed_column_ = new wxBoxSizer(wxVERTICAL);
     wxBoxSizer* left_unsigned_column_ = new wxBoxSizer(wxVERTICAL);
+
     wxBoxSizer* right_label_column_ = new wxBoxSizer(wxVERTICAL);
     wxBoxSizer* right_first_nibble_column_ = new wxBoxSizer(wxVERTICAL);
     wxBoxSizer* right_second_nibble_column_ = new wxBoxSizer(wxVERTICAL);
@@ -120,15 +115,6 @@ class reROMStateBox : public reBaseStateBox
       }
     }
 
-    void SetUnusedValues(
-        const std::array<uint8_t, ROM::kUnusedSize>& values)
-    {
-      for (int i = 0; i < ROM::kUnusedSize; ++i)
-      {
-        unused_[i]->SetValue(values[i]);
-      }
-    }
-
   private:
     void CreateRows();
     void CreateSubSizers();
@@ -138,7 +124,6 @@ class reROMStateBox : public reBaseStateBox
   private:
     std::array<reProgramDataStateRow*, ROM::kProgramDataSize> program_;
     std::array<reInputSwitchesStateRow*, ROM::kInputSwitchesSize> input_;
-    std::array<reUnusedStateRow*, ROM::kUnusedSize> unused_;
 
     wxSizer* addr_column_ = new wxBoxSizer(wxVERTICAL);
     wxSizer* ls_byte_ms_nibble_column_ = new wxBoxSizer(wxVERTICAL);

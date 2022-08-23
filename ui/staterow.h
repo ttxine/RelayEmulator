@@ -55,21 +55,10 @@ class reFlagStateRow : public reBaseStateRow<bool>
 class reROMStateRow : public reBaseStateRow<uint16_t>
 {
   public:
-    reROMStateRow(reROMStateBox* box,
-                  int addr,
-                  wxSizer* addr_column,
-                  wxSizer* ls_byte_ms_nibble_column,
-                  wxSizer* ls_byte_ls_nibble_column,
-                  wxSizer* ls_byte_hex_column);
-
-  public:
-    void SetValue(uint16_t val);
+    reROMStateRow(reROMStateBox* box, int addr, wxSizer* addr_column);
 
   protected:
     wxStaticText* addr_;
-    wxStaticText* ls_byte_ms_nibble_;
-    wxStaticText* ls_byte_ls_nibble_;
-    wxStaticText* ls_byte_hex_;
 };
 
 class reProgramDataStateRow : public reROMStateRow
@@ -90,6 +79,9 @@ class reProgramDataStateRow : public reROMStateRow
     void SetValue(uint16_t val);
 
   private:
+    wxStaticText* ls_byte_ms_nibble_;
+    wxStaticText* ls_byte_ls_nibble_;
+    wxStaticText* ls_byte_hex_;
     wxStaticText* ms_byte_ms_nibble_;
     wxStaticText* ms_byte_ls_nibble_;
     wxStaticText* ms_byte_hex_;
@@ -105,6 +97,13 @@ class reInputSwitchesStateRow : public reROMStateRow
                             wxSizer* ls_byte_ms_nibble_column,
                             wxSizer* ls_byte_ls_nibble_column,
                             wxSizer* ls_byte_hex_column);
+
+  public:
+    void SetValue(uint16_t val);
+
+  private:
+    wxStaticText* bit_;
+    wxStaticText* bit_hex_;
 };
 
 class reUnusedStateRow : public reROMStateRow
@@ -116,4 +115,12 @@ class reUnusedStateRow : public reROMStateRow
                      wxSizer* ls_byte_ms_nibble_column,
                      wxSizer* ls_byte_ls_nibble_column,
                      wxSizer* ls_byte_hex_column);
+
+  public:
+    void SetValue(uint16_t val);
+
+  private:
+    wxStaticText* ls_byte_ms_nibble_;
+    wxStaticText* ls_byte_ls_nibble_;
+    wxStaticText* ls_byte_hex_;
 };
