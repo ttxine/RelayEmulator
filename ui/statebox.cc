@@ -133,36 +133,21 @@ void reROMStateBox::AddRow(uint8_t addr)
   else if (addr < ROM::kProgramDataSize + ROM::kInputSwitchesSize)
   {
     int index = addr - program_.size();
-    input_[index] = new reInputSwitchesStateRow(this, addr , addr_column_,
+    input_[index] = new reInputSwitchesStateRow(this, addr, addr_column_,
                                                 ls_byte_ms_nibble_column_,
                                                 ls_byte_ls_nibble_column_,
-                                                ls_byte_hex_column_);
-    AddNull();
+                                                ls_byte_hex_column_,
+                                                ms_byte_ms_nibble_column_,
+                                                ms_byte_ls_nibble_column_,
+                                                ms_byte_hex_column_,
+                                                disassembled_column_);
   }
   else
   {
     int index = addr - program_.size() - input_.size();
     new reUnusedStateRow(this, addr, addr_column_, ls_byte_ms_nibble_column_,
-                         ls_byte_ls_nibble_column_, ls_byte_hex_column_);
-    AddNull();
+                         ls_byte_ls_nibble_column_, ls_byte_hex_column_,
+                         ms_byte_ms_nibble_column_, ms_byte_ls_nibble_column_,
+                         ms_byte_hex_column_, disassembled_column_);
   }
-}
-
-void reROMStateBox::AddNull()
-{
-  int margin = GetFont().GetPixelSize().GetY() / 2;
-
-  ms_byte_ms_nibble_column_->Add(new wxStaticText(this, wxID_ANY, "----"), 0,
-                                 wxALIGN_RIGHT);
-  ms_byte_ls_nibble_column_->Add(new wxStaticText(this, wxID_ANY, "----"), 0,
-                                 wxALIGN_RIGHT);
-  ms_byte_hex_column_->Add(new wxStaticText(this, wxID_ANY, "--"), 0,
-                           wxALIGN_RIGHT);
-  disassembled_column_->Add(new wxStaticText(this, wxID_ANY, "---"), 0,
-                            wxALIGN_RIGHT);
-
-  ms_byte_ms_nibble_column_->AddSpacer(margin);
-  ms_byte_ls_nibble_column_->AddSpacer(margin);
-  ms_byte_hex_column_->AddSpacer(margin);
-  disassembled_column_->AddSpacer(margin);
 }

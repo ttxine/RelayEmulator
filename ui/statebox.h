@@ -118,7 +118,6 @@ class reROMStateBox : public reBaseStateBox
   private:
     void CreateRows();
     void CreateSubSizers();
-    void AddNull();
     void AddRow(uint8_t addr);
 
   private:
