@@ -25,5 +25,3 @@ class Node
 
     std::vector<Node> sub_nodes_;
 };
-
-using Root = std::vector<Node>;

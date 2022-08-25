@@ -200,7 +200,7 @@ void reMainForm::Stop()
   EnableReset();
   EnableStop(false);
 
-  state_ == State::kWaiting;
+  state_ = State::kWaiting;
 }
 
 void reMainForm::Load(const wxString& path)

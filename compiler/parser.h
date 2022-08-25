@@ -18,10 +18,10 @@ class Parser
     };
 
   public:
-    Parser(std::vector<std::pair<Token, std::string>> tokens);
+    Parser(const std::vector<std::pair<Token, std::string>>& tokens);
 
   public:
-    Root Parse();
+    std::vector<Node> Parse();
 
     const std::unordered_map<std::string, int> GetLabels() const
     {
@@ -44,12 +44,7 @@ class Parser
     void InitializeInstructions();
     InstructionLength GetInstructionLength(const std::string& instruction);
 
-    std::pair<Token, std::string> GetCurrentToken() const
-    {
-      if (cur_token_ < tokens_.end()) return *cur_token_;
-      else return { Token::kEOF, "" };
-    }
-
+    std::pair<Token, std::string> GetCurrentToken() const;
     bool IsTokenOperand(Token token) const
     {
       return token == Token::kNumerical || token == Token::kRegister ||

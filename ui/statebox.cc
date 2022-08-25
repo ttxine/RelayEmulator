@@ -14,32 +14,40 @@ reRegisterStateBox::reRegisterStateBox(wxWindow *parent)
 
 void reRegisterStateBox::CreateRows()
 {
-  A_ = AddRowToLeft("A");
-  B_ = AddRowToLeft("B");
-  C_ = AddRowToLeft("C");
-  D_ = AddRowToLeft("D");
-  M_ = AddRowToRight("M");
-  S_ = AddRowToRight("S");
-  L_ = AddRowToRight("L");
-  PC_ = AddRowToRight("PC");
-
   CreateSubSizers();
-}
 
-reRegisterStateRow* reRegisterStateBox::AddRowToLeft(const wxString& label)
-{
-  return new reRegisterStateRow(this, label, left_label_column_,
-                                left_first_nibble_column_,
-                                left_second_nibble_column_, left_hex_column_,
-                                left_signed_column_, left_unsigned_column_);
-}
-
-reRegisterStateRow* reRegisterStateBox::AddRowToRight(const wxString& label)
-{
-  return new reRegisterStateRow(this, label, right_label_column_,
-                                right_first_nibble_column_,
-                                right_second_nibble_column_, right_hex_column_,
-                                right_signed_column_, right_unsigned_column_);
+  A_ = new reRegisterStateRow(this, "A", left_label_column_,
+                              left_first_nibble_column_,
+                              left_second_nibble_column_, left_hex_column_,
+                              left_signed_column_, left_unsigned_column_);
+  B_ = new reRegisterStateRow(this, "B", left_label_column_,
+                              left_first_nibble_column_,
+                              left_second_nibble_column_, left_hex_column_,
+                              left_signed_column_, left_unsigned_column_);
+  C_ = new reRegisterStateRow(this, "C", left_label_column_,
+                              left_first_nibble_column_,
+                              left_second_nibble_column_, left_hex_column_,
+                              left_signed_column_, left_unsigned_column_);
+  D_ = new reRegisterStateRow(this, "D", left_label_column_,
+                              left_first_nibble_column_,
+                              left_second_nibble_column_, left_hex_column_,
+                              left_signed_column_, left_unsigned_column_);
+  M_ = new reRegisterStateRow(this, "M", right_label_column_,
+                              right_first_nibble_column_,
+                              right_second_nibble_column_, right_hex_column_,
+                              right_signed_column_, right_unsigned_column_);
+  S_ = new reRegisterStateRow(this, "S", right_label_column_,
+                              right_first_nibble_column_,
+                              right_second_nibble_column_, right_hex_column_,
+                              right_signed_column_, right_unsigned_column_);
+  L_ = new reRegisterStateRow(this, "L", right_label_column_,
+                              right_first_nibble_column_,
+                              right_second_nibble_column_, right_hex_column_,
+                              right_signed_column_, right_unsigned_column_);
+  PC_ = new reRegisterStateRow(this, "PC", right_label_column_,
+                               right_first_nibble_column_,
+                               right_second_nibble_column_, right_hex_column_,
+                               right_signed_column_, right_unsigned_column_);
 }
 
 void reRegisterStateBox::CreateSubSizers()
@@ -65,8 +73,8 @@ void reRegisterStateBox::CreateSubSizers()
   left_sizer->AddStretchSpacer();
   right_sizer->AddStretchSpacer();
 
-  sizer_->Add(left_sizer, 0, wxLEFT, 15);
-  sizer_->Add(right_sizer, 0);
+  GetStaticBoxSizer()->Add(left_sizer, 0, wxLEFT, 15);
+  GetStaticBoxSizer()->Add(right_sizer, 0);
 }
 
 reFlagStateBox::reFlagStateBox(wxWindow *parent)
@@ -77,17 +85,12 @@ reFlagStateBox::reFlagStateBox(wxWindow *parent)
 
 void reFlagStateBox::CreateRows()
 {
-  S_ = AddRow("S");
-  Z_ = AddRow("Z");
-  CY_ = AddRow("CY");
+  S_ = new reFlagStateRow(this, "S", label_column_, value_column_);;
+  Z_ = new reFlagStateRow(this, "Z", label_column_, value_column_);;
+  CY_ = new reFlagStateRow(this, "CY", label_column_, value_column_);;
 
-  sizer_->Add(label_column_, 1, wxEXPAND | wxLEFT, 15);
-  sizer_->Add(value_column_, 1, wxRIGHT, 15);
-}
-
-reFlagStateRow* reFlagStateBox::AddRow(const wxString& label)
-{
-  return new reFlagStateRow(this, label, label_column_, value_column_);
+  GetStaticBoxSizer()->Add(label_column_, 1, wxEXPAND | wxLEFT, 15);
+  GetStaticBoxSizer()->Add(value_column_, 1, wxRIGHT, 15);
 }
 
 reROMStateBox::reROMStateBox(wxWindow *parent)
@@ -100,37 +103,20 @@ void reROMStateBox::CreateRows()
 {
   const int kROMSize = ROM::kProgramDataSize + ROM::kInputSwitchesSize +
                        ROM::kUnusedSize;
-  for (int addr = 0; addr < kROMSize; ++addr)
-  {
-    AddRow(addr);
-  }
 
-  const int margin = GetFont().GetPixelSize().GetX();
-  sizer_->Add(addr_column_, 0, wxEXPAND | wxLEFT, 15);
-  sizer_->Add(ms_byte_ms_nibble_column_, 1, wxEXPAND);
-  sizer_->Add(ms_byte_ls_nibble_column_, 0, wxLEFT, margin);
-  sizer_->Add(ls_byte_ms_nibble_column_, 0, wxLEFT, margin);
-  sizer_->Add(ls_byte_ls_nibble_column_, 0, wxLEFT, margin);
-  sizer_->Add(ms_byte_hex_column_, 1, wxEXPAND);
-  sizer_->Add(ls_byte_hex_column_, 0, wxLEFT, GetFont().GetPixelSize().GetX());
-  sizer_->Add(disassembled_column_, 1, wxRIGHT, 15);
-  sizer_->AddStretchSpacer();
-}
-
-void reROMStateBox::AddRow(uint8_t addr)
-{
-  if (addr < ROM::kProgramDataSize)
+  int addr = 0;
+  for (addr; addr < ROM::kProgramDataSize; ++addr)
   {
     program_[addr] = new reProgramDataStateRow(this, addr, addr_column_,
-                                               ls_byte_ms_nibble_column_,
-                                               ls_byte_ls_nibble_column_,
-                                               ls_byte_hex_column_,
-                                               ms_byte_ms_nibble_column_,
-                                               ms_byte_ls_nibble_column_,
-                                               ms_byte_hex_column_,
-                                               disassembled_column_);
+                                              ls_byte_ms_nibble_column_,
+                                              ls_byte_ls_nibble_column_,
+                                              ls_byte_hex_column_,
+                                              ms_byte_ms_nibble_column_,
+                                              ms_byte_ls_nibble_column_,
+                                              ms_byte_hex_column_,
+                                              disassembled_column_);
   }
-  else if (addr < ROM::kProgramDataSize + ROM::kInputSwitchesSize)
+  for (addr; addr < ROM::kProgramDataSize + ROM::kInputSwitchesSize; ++addr)
   {
     int index = addr - program_.size();
     input_[index] = new reInputSwitchesStateRow(this, addr, addr_column_,
@@ -142,12 +128,23 @@ void reROMStateBox::AddRow(uint8_t addr)
                                                 ms_byte_hex_column_,
                                                 disassembled_column_);
   }
-  else
+  for (addr; addr < kROMSize; ++addr)
   {
     int index = addr - program_.size() - input_.size();
     new reUnusedStateRow(this, addr, addr_column_, ls_byte_ms_nibble_column_,
-                         ls_byte_ls_nibble_column_, ls_byte_hex_column_,
-                         ms_byte_ms_nibble_column_, ms_byte_ls_nibble_column_,
-                         ms_byte_hex_column_, disassembled_column_);
+                        ls_byte_ls_nibble_column_, ls_byte_hex_column_,
+                        ms_byte_ms_nibble_column_, ms_byte_ls_nibble_column_,
+                        ms_byte_hex_column_, disassembled_column_);
   }
+
+  const int margin = GetFont().GetPixelSize().GetX();
+  GetStaticBoxSizer()->Add(addr_column_, 0, wxEXPAND | wxLEFT, 15);
+  GetStaticBoxSizer()->Add(ms_byte_ms_nibble_column_, 1, wxEXPAND);
+  GetStaticBoxSizer()->Add(ms_byte_ls_nibble_column_, 0, wxLEFT, margin);
+  GetStaticBoxSizer()->Add(ls_byte_ms_nibble_column_, 0, wxLEFT, margin);
+  GetStaticBoxSizer()->Add(ls_byte_ls_nibble_column_, 0, wxLEFT, margin);
+  GetStaticBoxSizer()->Add(ms_byte_hex_column_, 1, wxEXPAND);
+  GetStaticBoxSizer()->Add(ls_byte_hex_column_, 0, wxLEFT, GetFont().GetPixelSize().GetX());
+  GetStaticBoxSizer()->Add(disassembled_column_, 1, wxRIGHT, 15);
+  GetStaticBoxSizer()->AddStretchSpacer();
 }

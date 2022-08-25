@@ -39,3 +39,8 @@ uint8_t ROM::ReadInputSwitches(uint8_t addr) const noexcept
 
   return data;
 }
+
+uint8_t ROM::ReadUnused(uint8_t addr) const noexcept
+{
+  return 0x00;
+}

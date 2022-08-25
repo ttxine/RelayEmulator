@@ -3,7 +3,7 @@
 #include "compiler/parser.h"
 #include "utils/str.h"
 
-Parser::Parser(std::vector<std::pair<Token, std::string>> tokens)
+Parser::Parser(const std::vector<std::pair<Token, std::string>>& tokens)
 {
   tokens_ = tokens;
   cur_token_ = tokens_.begin();
@@ -11,9 +11,9 @@ Parser::Parser(std::vector<std::pair<Token, std::string>> tokens)
   InitializeInstructions();
 }
 
-Root Parser::Parse()
+std::vector<Node> Parser::Parse()
 {
-  Root root;
+  std::vector<Node> root;
 
   while (cur_token_ < tokens_.end())
   {
@@ -288,6 +288,12 @@ std::vector<Node> Parser::TakeThreeOperandsOptional()
   }
 
   return operands;
+}
+
+std::pair<Token, std::string> Parser::GetCurrentToken() const
+{
+  if (cur_token_ < tokens_.end()) return *cur_token_;
+  else return { Token::kEOF, "" };
 }
 
 void Parser::InitializeInstructions()

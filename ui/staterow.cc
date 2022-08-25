@@ -129,31 +129,31 @@ reProgramDataStateRow::reProgramDataStateRow(reROMStateBox* box,
                     ms_byte_ms_nibble_column, ms_byte_ls_nibble_column,
                     ms_byte_hex_column, disassembled_column)
 {
-  ls_byte_ms_nibble_->SetLabel("0000");
-  ls_byte_ls_nibble_->SetLabel("0000");
-  ls_byte_hex_->SetLabel("00");
-  ms_byte_ms_nibble_->SetLabel("0000");
-  ms_byte_ls_nibble_->SetLabel("0000");
-  ms_byte_hex_->SetLabel("00");
-  disassembled_->SetLabel("NOP");
+  GetLSByteMSNibble()->SetLabel("0000");
+  GetLSByteLSNibble()->SetLabel("0000");
+  GetLSByteHex()->SetLabel("00");
+  GetMSByteMSNibble()->SetLabel("0000");
+  GetMSByteLSNibble()->SetLabel("0000");
+  GetMSByteHex()->SetLabel("00");
+  GetDisassembled()->SetLabel("NOP");
 }
 
 void reProgramDataStateRow::SetValue(uint16_t val)
 {
   uint8_t ls_byte_val = static_cast<uint8_t>(val);
-  ls_byte_hex_->SetLabel(to_hex_string(ls_byte_val, 2));
-  ls_byte_ls_nibble_->SetLabel(
+  GetLSByteHex()->SetLabel(to_hex_string(ls_byte_val, 2));
+  GetLSByteLSNibble()->SetLabel(
       std::bitset<4>(ls_byte_val & 0x0F).to_string());
-  ls_byte_ms_nibble_->SetLabel(
+  GetLSByteMSNibble()->SetLabel(
       std::bitset<4>(ls_byte_val >> 4).to_string());
 
   uint8_t ms_byte_val = static_cast<uint8_t>(val >> 8);
-  ms_byte_hex_->SetLabel(to_hex_string(ms_byte_val, 2));
-  ms_byte_ls_nibble_->SetLabel(
+  GetMSByteHex()->SetLabel(to_hex_string(ms_byte_val, 2));
+  GetMSByteLSNibble()->SetLabel(
       std::bitset<4>(ms_byte_val & 0x0F).to_string());
-  ms_byte_ms_nibble_->SetLabel(
+  GetMSByteMSNibble()->SetLabel(
       std::bitset<4>(ms_byte_val >> 4).to_string());
-  disassembled_->SetLabel(disassemble(val));
+  GetDisassembled()->SetLabel(disassemble(val));
 }
 
 reInputSwitchesStateRow::reInputSwitchesStateRow(
@@ -172,15 +172,15 @@ reInputSwitchesStateRow::reInputSwitchesStateRow(
                     ms_byte_ms_nibble_column, ms_byte_ls_nibble_column,
                     ms_byte_hex_column, disassembled_column)
 {
-  ls_byte_ls_nibble_->SetLabel("---0");
-  ls_byte_hex_->SetLabel("00");
+  GetLSByteLSNibble()->SetLabel("---0");
+  GetLSByteHex()->SetLabel("00");
 }
 
 void reInputSwitchesStateRow::SetValue(uint16_t val)
 {
   uint8_t bit = val & 0x0001;
-  ls_byte_hex_->SetLabel("0" + std::to_string(bit));
-  ls_byte_ls_nibble_->SetLabel("---" + std::to_string(bit));
+  GetLSByteHex()->SetLabel("0" + std::to_string(bit));
+  GetLSByteLSNibble()->SetLabel("---" + std::to_string(bit));
 }
 
 reUnusedStateRow::reUnusedStateRow(reROMStateBox* box,
@@ -198,9 +198,9 @@ reUnusedStateRow::reUnusedStateRow(reROMStateBox* box,
                     ms_byte_ms_nibble_column, ms_byte_ls_nibble_column,
                     ms_byte_hex_column, disassembled_column)
 {
-  ls_byte_ms_nibble_->SetLabel("0000");
-  ls_byte_ls_nibble_->SetLabel("0000");
-  ls_byte_hex_->SetLabel("00");
+  GetLSByteMSNibble()->SetLabel("0000");
+  GetLSByteLSNibble()->SetLabel("0000");
+  GetLSByteHex()->SetLabel("00");
 }
 
 void reUnusedStateRow::SetValue(uint16_t val)

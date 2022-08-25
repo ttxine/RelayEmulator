@@ -16,6 +16,7 @@ set(SOURCES
     compiler/lexer.cc
     compiler/parser.cc
     compiler/compiler.cc
+    compiler/run.cc
     utils/str.cc
     utils/tempfile.cc)
 

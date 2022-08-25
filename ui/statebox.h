@@ -12,12 +12,13 @@ class reBaseStateBox : public wxStaticBox
     reBaseStateBox(wxWindow* parent, const wxString& label, int orient);
 
   public:
-    virtual void CreateRows() = 0;
-
     wxStaticBoxSizer* GetStaticBoxSizer() const { return sizer_; }
     void SetStaticBoxSizer(wxStaticBoxSizer* sizer) { sizer_ = sizer; }
 
   protected:
+    virtual void CreateRows() = 0;
+
+  private:
     wxStaticBoxSizer* sizer_;
 };
 
@@ -37,10 +38,8 @@ class reRegisterStateBox : public reBaseStateBox
     void SetPCValue(uint8_t value) { PC_->SetValue(value); }
 
   private:
-    void CreateRows();
+    void CreateRows() override;
     void CreateSubSizers();
-    reRegisterStateRow* AddRowToLeft(const wxString& label);
-    reRegisterStateRow* AddRowToRight(const wxString& label);
 
   private:
     reRegisterStateRow* A_;
@@ -79,8 +78,7 @@ class reFlagStateBox : public reBaseStateBox
     void SetCYValue(uint8_t value) { CY_->SetValue(value); }
 
   private:
-    void CreateRows();
-    reFlagStateRow* AddRow(const wxString& label);
+    void CreateRows() override;
 
   private:
     reFlagStateRow* S_;
@@ -116,9 +114,8 @@ class reROMStateBox : public reBaseStateBox
     }
 
   private:
-    void CreateRows();
+    void CreateRows() override;
     void CreateSubSizers();
-    void AddRow(uint8_t addr);
 
   private:
     std::array<reProgramDataStateRow*, ROM::kProgramDataSize> program_;

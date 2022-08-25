@@ -27,7 +27,7 @@ uint16_t Bus::Read(uint8_t addr) const noexcept
   else
   {
     // Unused (read as 0)
-    return 0x00;
+    return rom_.ReadUnused(addr);
   }
 }
 

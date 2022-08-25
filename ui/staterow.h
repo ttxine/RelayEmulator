@@ -25,7 +25,7 @@ class reRegisterStateRow : public reBaseStateRow<uint8_t>
                        wxSizer* unsigned_column);
 
   public:
-    void SetValue(uint8_t val);
+    void SetValue(uint8_t val) override;
 
   private:
     wxStaticText* label_;
@@ -45,7 +45,7 @@ class reFlagStateRow : public reBaseStateRow<bool>
                    wxSizer* value_column);
 
   public:
-    void SetValue(bool val);
+    void SetValue(bool val) override;
 
   private:
     wxStaticText* label_;
@@ -67,6 +67,16 @@ class reROMStateRow : public reBaseStateRow<uint16_t>
                   wxSizer* disassembled_column);
 
   protected:
+    wxStaticText* GetAddr() { return addr_; }
+    wxStaticText* GetLSByteMSNibble() { return ls_byte_ms_nibble_; }
+    wxStaticText* GetLSByteLSNibble() { return ls_byte_ls_nibble_; }
+    wxStaticText* GetLSByteHex() { return ls_byte_hex_; }
+    wxStaticText* GetMSByteMSNibble() { return ms_byte_ms_nibble_; }
+    wxStaticText* GetMSByteLSNibble() { return ms_byte_ls_nibble_; }
+    wxStaticText* GetMSByteHex() { return ms_byte_hex_; }
+    wxStaticText* GetDisassembled() { return disassembled_; }
+
+  private:
     wxStaticText* addr_;
     wxStaticText* ls_byte_ms_nibble_;
     wxStaticText* ls_byte_ls_nibble_;
@@ -92,7 +102,7 @@ class reProgramDataStateRow : public reROMStateRow
                           wxSizer* disassembled_column);
 
   public:
-    void SetValue(uint16_t val);
+    void SetValue(uint16_t val) override;
 };
 
 class reInputSwitchesStateRow : public reROMStateRow
@@ -110,7 +120,7 @@ class reInputSwitchesStateRow : public reROMStateRow
                             wxSizer* disassembled_column);
 
   public:
-    void SetValue(uint16_t val);
+    void SetValue(uint16_t val) override;
 };
 
 class reUnusedStateRow : public reROMStateRow
@@ -128,5 +138,5 @@ class reUnusedStateRow : public reROMStateRow
                      wxSizer* disassembled_column);
 
   public:
-    void SetValue(uint16_t val);
+    void SetValue(uint16_t val) override;
 };

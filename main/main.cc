@@ -5,56 +5,28 @@
 #include "compiler/run.h"
 #include "utils/tempfile.h"
 
-int main(int argc, char* argv[])
+struct Options
 {
   std::array<uint8_t, 2> input = {};
-  int input_count = 0;
-
   bool debug = false;
   bool is_asm = false;
+};
 
-  std::string help_message = "Usage: " + std::string(argv[0]) + " [OPTION] "
-                             "[FILE]";
+Options parse_options(int argc, char* argv[]);
+void print_help(const std::string& binary);
 
-  char option;
-  while ((option = getopt(argc, argv, "sdi:")) != -1)
-  {
-    switch (option)
-    {
-      case 's': is_asm = true; break;
-      case 'd': debug = true; break;
-      case 'i':
-      {
-        if (input_count < 2)
-        {
-          input[input_count] = std::stoi(optarg);
-          ++input_count;
-        }
-        else
-        {
-          std::cerr << help_message << std::endl;
-          exit(EXIT_FAILURE);
-        }
-        break;
-      }
-      case '?':
-      {
-        std::cerr << help_message << std::endl;
-        exit(EXIT_FAILURE);
-      }
-      default: abort();
-    }
-  }
+int main(int argc, char* argv[])
+{
+  Options options = parse_options(argc, argv);
 
-  if (is_asm)
+  if (options.is_asm)
   {
     try
     {
-      TemporaryFile compiled = run_compiler(
-          argv[optind]);
+      TemporaryFile compiled = run_compiler(argv[optind]);
       compiled.Close();
 
-      Emulator emu(compiled.GetPath(), debug, input);
+      Emulator emu(compiled.GetPath(), options.debug, options.input);
       emu.Run();
     }
     catch (const std::runtime_error& e)
@@ -67,7 +39,7 @@ int main(int argc, char* argv[])
   {
     try
     {
-      Emulator emu(argv[optind], debug, input);
+      Emulator emu(argv[optind], options.debug, options.input);
       emu.Run();
     }
     catch(const std::runtime_error& e)
@@ -78,9 +50,68 @@ int main(int argc, char* argv[])
   }
   else
   {
-    std::cerr << help_message << std::endl;
+    print_help(argv[0]);
     exit(EXIT_FAILURE);
   }
 
   return 0;
+}
+
+Options parse_options(int argc, char* argv[])
+{
+  Options options;
+  int input_count = 0;
+
+  char option;
+  while ((option = getopt(argc, argv, "hsdi:")) != -1)
+  {
+    switch (option)
+    {
+      case 's':
+      {
+        options.is_asm = true;
+        break;
+      }
+      case 'd':
+      {
+        options.debug = true;
+        break;
+      }
+      case 'i':
+      {
+        if (input_count < 2)
+        {
+          options.input[input_count] = std::stoi(optarg);
+          ++input_count;
+        }
+        else
+        {
+          print_help(argv[0]);
+          exit(EXIT_FAILURE);
+        }
+        break;
+      }
+      case 'h': case '?': default:
+      {
+        print_help(argv[0]);
+        exit(EXIT_FAILURE);
+      }
+    }
+  }
+
+  return options;
+}
+
+void print_help(const std::string& binary)
+{
+  std::cerr << "RelayEmulator - https://github.com/ttxine/RelayEmulator\n"
+               "\n"
+               "Usage: " << binary << " [options] [path to file]\n"
+               "\n"
+               "Options:\n"
+               "  -h                            Display this help message.\n"
+               "  -s                            Compile file before execution.\n"
+               "  -i <value>                    Add value to input (can be used twice).\n"
+               "  -d                            Debug mode.\n" <<
+               std::endl;
 }

@@ -17,6 +17,7 @@ class ROM
   public:
     uint16_t ReadProgramData(uint8_t addr) const noexcept;
     uint8_t ReadInputSwitches(uint8_t addr) const noexcept;
+    uint8_t ReadUnused(uint8_t addr) const noexcept;
     void Input(uint8_t first, uint8_t second) noexcept;
 
   private:
