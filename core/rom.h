@@ -11,8 +11,8 @@ class ROM
     static const int kUnusedSize = 112;
 
   public:
-    ROM(const std::array<uint16_t, 128>& program = {},
-        const std::array<uint8_t, 2>& input = {});
+    ROM(const std::array<uint16_t, kProgramDataSize>& program = {},
+        const std::array<uint8_t, kInputSwitchesSize / 8>& input = {});
 
   public:
     uint16_t ReadProgramData(uint8_t addr) const noexcept;

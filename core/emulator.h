@@ -6,8 +6,8 @@
 class Emulator
 {
   public:
-    Emulator(bool debug = false, bool GUI_enabled = false);
-    Emulator(const std::string& program_path, bool debug = false,
+    Emulator(bool GUI_enabled = false);
+    Emulator(const std::string& program_path,
              std::array<uint8_t, 2> input = {}, bool GUI_enabled = false);
 
     // Movable only
@@ -19,6 +19,7 @@ class Emulator
   public:
     // Executes the entire program.
     void Run();
+    void Debug();
 
     // Performs one instruction.
     void Step();
@@ -34,11 +35,8 @@ class Emulator
     bool Stopped() const { return main_bus_.Stopped(); };
 
   private:
-    bool debug_;
-
     // If GUI enabled, there is no need to print any information.
     bool gui_enabled_;
 
-  private:
     Bus main_bus_;
 };

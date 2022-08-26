@@ -1,19 +1,20 @@
 #include <bitset>
 #include <memory>
+#include <limits>
 #include <iostream>
 #include <arpa/inet.h>
 
 #include "core/emulator.h"
 #include "utils/str.h"
 
-Emulator::Emulator(bool debug, bool gui_enabled)
-    : debug_(debug), gui_enabled_(gui_enabled)
+Emulator::Emulator(bool gui_enabled)
+    : gui_enabled_(gui_enabled)
 {
 }
 
-Emulator::Emulator(const std::string& program_path, bool debug,
+Emulator::Emulator(const std::string& program_path,
                    std::array<uint8_t, 2> input, bool gui_enabled)
-    : Emulator(debug, gui_enabled)
+    : Emulator(gui_enabled)
 {
   Load(program_path);
   Input(input[0], input[1]);
@@ -24,16 +25,44 @@ void Emulator::Run()
   while (!main_bus_.Stopped())
   {
     Step();
-
-    if (!gui_enabled_ && debug_)
-    {
-      PrintDebugInfo();
-      std::cin.get();
-    }
   }
 
-  if (!gui_enabled_ && !debug_)
+  if (!gui_enabled_)
   {
+    PrintDebugInfo();
+  }
+}
+
+void Emulator::Debug()
+{
+  while (!main_bus_.Stopped())
+  {
+    std::string command;
+    while (command != "step" && command != "s")
+    {
+      std::cout << "(debug) ";
+      std::getline(std::cin, command);
+
+      if (command == "q" || command == "quit")
+      {
+        return;
+      }
+      else if (command == "h" || command == "help")
+      {
+        std::cout << "List of commands: \n"
+                     "\n"
+                     "  help, h                 Print this help message.\n"
+                     "  step, s                 Execute next instruction.\n"
+                     "  quit, q                 Exit debug." << std::endl;
+      }
+      else if (command != "s" && command != "step" && !command.empty())
+      {
+        std::cout << "Undefined command: \"" << command << "\". "
+                      "Try \"help\"." << std::endl;
+      }
+    }
+
+    Step();
     PrintDebugInfo();
   }
 }
@@ -91,24 +120,13 @@ void Emulator::Stop() noexcept
 void Emulator::PrintDebugInfo() const
 {
   Bus::DebugInfo info = GetDebugInfo();
-  std::printf("Instruction: %s\n\n"
-              "Registers:\n"
-              " A: %s     M: %s\n"
-              " B: %s     S: %s\n"
-              " C: %s     L: %s\n"
-              " D: %s    PC: %s\n\n"
-              "Flags:\n"
-              "CY: %d     Z: %d     S: %d\n",
-              info.instruction.c_str(),
-              std::bitset<8>(info.registers.A).to_string().c_str(),
-              std::bitset<8>(info.registers.M).to_string().c_str(),
-              std::bitset<8>(info.registers.B).to_string().c_str(),
-              std::bitset<8>(info.registers.S).to_string().c_str(),
-              std::bitset<8>(info.registers.C).to_string().c_str(),
-              std::bitset<8>(info.registers.L).to_string().c_str(),
-              std::bitset<8>(info.registers.D).to_string().c_str(),
-              std::bitset<8>(info.registers.PC).to_string().c_str(),
-              info.flags.CY,
-              info.flags.Z,
-              info.flags.S);
+  std::cout << "Instruction: " << info.instruction <<"\n"
+               "\n"
+               "Registers:\n"
+               " A: " << std::bitset<8>(info.registers.A).to_string() << "     M: " << std::bitset<8>(info.registers.M).to_string() << "\n"
+               " B: " << std::bitset<8>(info.registers.B).to_string() << "     S: " << std::bitset<8>(info.registers.S).to_string() << "\n"
+               " C: " << std::bitset<8>(info.registers.C).to_string() << "     L: " << std::bitset<8>(info.registers.L).to_string() << "\n"
+               " D: " << std::bitset<8>(info.registers.D).to_string() << "    PC: " << std::bitset<8>(info.registers.PC).to_string() << "\n\n"
+               "Flags:\n"
+               "CY: " << info.flags.CY << "    Z: " << info.flags.Z << "    S: " << info.flags.S << std::endl;
 }

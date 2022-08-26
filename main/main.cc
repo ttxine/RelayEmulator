@@ -1,19 +1,10 @@
 #include <iostream>
 #include <unistd.h>
 
+#include "main/main.h"
 #include "core/emulator.h"
 #include "compiler/run.h"
 #include "utils/tempfile.h"
-
-struct Options
-{
-  std::array<uint8_t, 2> input = {};
-  bool debug = false;
-  bool is_asm = false;
-};
-
-Options parse_options(int argc, char* argv[]);
-void print_help(const std::string& binary);
 
 int main(int argc, char* argv[])
 {
@@ -26,8 +17,8 @@ int main(int argc, char* argv[])
       TemporaryFile compiled = run_compiler(argv[optind]);
       compiled.Close();
 
-      Emulator emu(compiled.GetPath(), options.debug, options.input);
-      emu.Run();
+      Emulator emu(compiled.GetPath(), options.input);
+      options.debug ? emu.Debug() : emu.Run();
     }
     catch (const std::runtime_error& e)
     {
@@ -39,8 +30,8 @@ int main(int argc, char* argv[])
   {
     try
     {
-      Emulator emu(argv[optind], options.debug, options.input);
-      emu.Run();
+      Emulator emu(argv[optind], options.input);
+      options.debug ? emu.Debug() : emu.Run();
     }
     catch(const std::runtime_error& e)
     {

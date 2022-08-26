@@ -80,8 +80,8 @@ class reMainForm : public wxFrame
 
     std::array<uint8_t, 2> last_input_ = {};
 
-    Emulator emulator_ = { true, true };
-    std::thread background_thread_;
+    Emulator emulator_ = { true };
+    std::thread background_thread_ = {};
 
     wxDECLARE_EVENT_TABLE();
 };
