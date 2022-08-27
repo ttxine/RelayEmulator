@@ -26,12 +26,9 @@ set(UI_SOURCES
     ui/inputdialog.cc
     ui/mainform.cc)
 
+include_directories(${PROJECT_SOURCE_DIR})
+add_subdirectory(thirdparty)
+
 add_executable(relay-emulator ${SOURCES} main/main.cc)
-target_include_directories(relay-emulator PRIVATE ${PROJECT_SOURCE_DIR})
-
-find_package(wxWidgets REQUIRED COMPONENTS net core base)
-include(${wxWidgets_USE_FILE})
-
 add_executable(relay-emulator-gui ${SOURCES} ${UI_SOURCES} ui/app.cc)
-target_include_directories(relay-emulator-gui PRIVATE ${PROJECT_SOURCE_DIR})
-target_link_libraries(relay-emulator-gui ${wxWidgets_LIBRARIES})
+target_link_libraries(relay-emulator-gui wxWidgets_external)
