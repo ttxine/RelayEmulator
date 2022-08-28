@@ -1,6 +1,9 @@
+add_library(wxWidgets_external INTERFACE)
+
 find_package(wxWidgets COMPONENTS core base)
 if(wxWidgets_FOUND)
-    include(${wxWidgets_USE_FILE})
+    target_include_directories(wxWidgets_external INTERFACE ${wxWidgets_INCLUDE_DIRS})
+    target_compile_definitions(wxWidgets_external INTERFACE ${wxWidgets_DEFINITIONS})
 else(wxWidgets_FOUND)
     include(FetchContent)
     FetchContent_Declare(
@@ -22,5 +25,4 @@ else(wxWidgets_FOUND)
     set(wxWidgets_LIBRARIES wxcore wxbase)
 endif(wxWidgets_FOUND)
 
-add_library(wxWidgets_external INTERFACE)
 target_link_libraries(wxWidgets_external INTERFACE ${wxWidgets_LIBRARIES})

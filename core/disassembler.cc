@@ -99,7 +99,6 @@ static std::string disassemble_CALL(uint16_t instruction)
   uint8_t Imm = instruction & 0x00FF;
 
   std::string cond_name = get_condition_name(cond);
-  if (!cond_name.empty()) cond_name += ", ";
 
   if (cond_name == "A")
   {
@@ -107,6 +106,7 @@ static std::string disassemble_CALL(uint16_t instruction)
   }
   else
   {
+    if (!cond_name.empty()) cond_name += ", ";
     return "CALL " + cond_name + "0x" + to_hex_string(Imm);
   }
 }
@@ -117,7 +117,6 @@ static std::string disassemble_JMP(uint16_t instruction)
   uint8_t Imm = instruction & 0x00FF;
 
   std::string cond_name = get_condition_name(cond);
-  if (!cond_name.empty()) cond_name += ", ";
 
   if (cond_name == "A")
   {
@@ -125,6 +124,7 @@ static std::string disassemble_JMP(uint16_t instruction)
   }
   else
   {
+    if (!cond_name.empty()) cond_name += ", ";
     return "JMP " + cond_name + "0x" + to_hex_string(Imm);
   }
 }
@@ -136,7 +136,6 @@ static std::string disassemble_MOVI(uint16_t instruction)
   uint8_t Imm = instruction & 0x00FF;
 
   std::string cond_name = get_condition_name(cond);
-  if (!cond_name.empty()) cond_name += ", ";
 
   if (cond_name == "A")
   {
@@ -144,6 +143,7 @@ static std::string disassemble_MOVI(uint16_t instruction)
   }
   else
   {
+    if (!cond_name.empty()) cond_name += ", ";
     return "MOVI " + cond_name + get_register_name(Gd) + ", " +
            "0x" + to_hex_string(Imm);
   }

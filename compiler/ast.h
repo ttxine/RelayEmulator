@@ -8,7 +8,7 @@ class Node
 {
   public:
     Node(Token token_type, const std::string& str)
-        : token_type_(token_type), str_(str)
+        : str_(str), token_type_(token_type)
     {
     }
 

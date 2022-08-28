@@ -17,8 +17,8 @@ TemporaryFile::TemporaryFile()
                              std::string(strerror(errno)));
   }
 
-  fd_ = fd;
   path_ = path;
+  fd_ = fd;
   is_open_ = true;
 }
 
