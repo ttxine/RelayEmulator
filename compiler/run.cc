@@ -18,8 +18,7 @@ TemporaryFile run_compiler(const std::string& path)
   }
   catch (const std::runtime_error& e)
   {
-    std::cerr << "lexer: " << e.what() << std::endl;
-    std::exit(EXIT_FAILURE);
+    throw std::runtime_error("lexer: " + std::string(e.what()));
   }
 
   std::vector<Node> root;
@@ -32,8 +31,7 @@ TemporaryFile run_compiler(const std::string& path)
   }
   catch (const std::runtime_error& e)
   {
-    std::cerr << "parser: " << e.what() << std::endl;
-    std::exit(EXIT_FAILURE);
+    throw std::runtime_error("parser: " + std::string(e.what()));
   }
 
   try
@@ -43,8 +41,7 @@ TemporaryFile run_compiler(const std::string& path)
   }
   catch (const std::runtime_error& e)
   {
-    std::cerr << "compiler: " << e.what() << std::endl;
-    std::exit(EXIT_FAILURE);
+    throw std::runtime_error("compiler: " + std::string(e.what()));
   }
 }
 

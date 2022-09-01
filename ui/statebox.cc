@@ -108,13 +108,13 @@ void reROMStateBox::CreateRows()
   for (addr; addr < ROM::kProgramDataSize; ++addr)
   {
     program_[addr] = new reProgramDataStateRow(this, addr, addr_column_,
-                                              ls_byte_ms_nibble_column_,
-                                              ls_byte_ls_nibble_column_,
-                                              ls_byte_hex_column_,
-                                              ms_byte_ms_nibble_column_,
-                                              ms_byte_ls_nibble_column_,
-                                              ms_byte_hex_column_,
-                                              disassembled_column_);
+                                               ls_byte_ms_nibble_column_,
+                                               ls_byte_ls_nibble_column_,
+                                               ls_byte_hex_column_,
+                                               ms_byte_ms_nibble_column_,
+                                               ms_byte_ls_nibble_column_,
+                                               ms_byte_hex_column_,
+                                               disassembled_column_);
   }
   for (addr; addr < ROM::kProgramDataSize + ROM::kInputSwitchesSize; ++addr)
   {
@@ -147,4 +147,22 @@ void reROMStateBox::CreateRows()
   GetStaticBoxSizer()->Add(ls_byte_hex_column_, 0, wxLEFT, GetFont().GetPixelSize().GetX());
   GetStaticBoxSizer()->Add(disassembled_column_, 1, wxRIGHT, 15);
   GetStaticBoxSizer()->AddStretchSpacer();
+}
+
+void reROMStateBox::SetProgramDataValues(
+    const std::array<uint16_t, ROM::kProgramDataSize>& values)
+{
+  for (int i = 0; i < ROM::kProgramDataSize; ++i)
+  {
+    program_[i]->SetValue(values[i]);
+  }
+}
+
+void reROMStateBox::SetInputSwitchesValues(
+    const std::array<uint8_t, ROM::kInputSwitchesSize>& values)
+{
+  for (int i = 0; i < ROM::kInputSwitchesSize; ++i)
+  {
+    input_[i]->SetValue(values[i]);
+  }
 }

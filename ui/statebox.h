@@ -96,22 +96,10 @@ class reROMStateBox : public reBaseStateBox
 
   public:
     void SetProgramDataValues(
-        const std::array<uint16_t, ROM::kProgramDataSize>& values)
-    {
-      for (int i = 0; i < ROM::kProgramDataSize; ++i)
-      {
-        program_[i]->SetValue(values[i]);
-      }
-    }
+        const std::array<uint16_t, ROM::kProgramDataSize>& values);
 
     void SetInputSwitchesValues(
-        const std::array<uint8_t, ROM::kInputSwitchesSize>& values)
-    {
-      for (int i = 0; i < ROM::kInputSwitchesSize; ++i)
-      {
-        input_[i]->SetValue(values[i]);
-      }
-    }
+        const std::array<uint8_t, ROM::kInputSwitchesSize>& values);
 
   private:
     void CreateRows() override;
