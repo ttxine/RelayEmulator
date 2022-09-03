@@ -3,12 +3,11 @@
 
 #include "compiler/run.h"
 
-static std::string get_characters_from_stream(std::ifstream& stream);
+static std::string file_to_string(const std::string& path);
 
 TemporaryFile run_compiler(const std::string& path)
 {
-  std::ifstream in(path, std::ifstream::ate | std::ios::binary);
-  std::string characters = get_characters_from_stream(in);
+  std::string characters = file_to_string(path);
 
   std::vector<std::pair<Token, std::string>> tokens;
   try
@@ -45,17 +44,22 @@ TemporaryFile run_compiler(const std::string& path)
   }
 }
 
-static std::string get_characters_from_stream(std::ifstream& stream)
+static std::string file_to_string(const std::string& path)
 {
-  std::streamsize bytes = stream.tellg();
+  std::ifstream file(path, std::ifstream::ate | std::ios::binary);
 
-  if (stream.fail()) throw std::runtime_error("can't open a file");
+  if (file.fail())
+  {
+    throw std::runtime_error("can't open a file: \"" + path + "\"");
+  }
+
+  std::streamsize bytes = file.tellg();
 
   std::string characters;
   characters.resize(bytes);
 
-  stream.seekg(0, std::ios::beg);
-  stream.read(&characters[0], bytes);
+  file.seekg(0, std::ios::beg);
+  file.read(&characters[0], bytes);
 
   return characters;
 }
