@@ -52,8 +52,8 @@ class Bus
     // Used for easy program load.
     void ConnectROM(const ROM& rom) { rom_ = rom; }
 
-    // Performs the current CPU instruction if the clock isn't stopped.
-    void Clock();
+    // Performs one instruction cycle.
+    void Cycle();
 
     // Stops the clock and program execution.
     void StopClock() { stopped_ = true; }
@@ -65,7 +65,7 @@ class Bus
     // Emulates input switches. Used for easy input.
     void Input(uint8_t first, uint8_t second) noexcept;
 
-    // Resets cpu_ and sets stopped_ to false.
+    // Resets CPU and sets stopped_ to false.
     void Reset() noexcept;
 
     DebugInfo GetDebugInfo() const;

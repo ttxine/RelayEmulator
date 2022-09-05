@@ -43,10 +43,10 @@ class CPU {
     };
 
   public:
-    // Performs current instruction.
-    void Clock();
+    // Performs one instruction cycle.
+    void Cycle();
 
-    // Sets all registers to 0 and is_halted to false.
+    // Sets all registers to 0 and halted_ to false.
     void Reset() noexcept;
 
     uint8_t GetRegister(uint8_t code) const;
@@ -59,7 +59,7 @@ class CPU {
 
     bool Halted() const
     {
-      return is_halted_;
+      return halted_;
     };
 
     uint16_t GetInstructionRegister() const
@@ -68,8 +68,11 @@ class CPU {
     }
 
   private:
+    // Fetches an instruction.
     void Fetch();
-    void Decode();
+
+    // Decodes and executes an instruction.
+    void Execute();
 
     void HALT();
     void NOP();
@@ -108,7 +111,7 @@ class CPU {
     Bus* bus_;
 
     // Instruction register
-    uint16_t instruction_;
+    uint16_t instruction_ = 0x0000;
 
     uint8_t A_ = 0x00;
     uint8_t B_ = 0x00;
@@ -123,5 +126,5 @@ class CPU {
     bool zero_ = false;
     bool carry_ = false;
 
-    bool is_halted_ = false;
+    bool halted_ = false;
 };

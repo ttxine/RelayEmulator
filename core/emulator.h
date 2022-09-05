@@ -29,14 +29,14 @@ class Emulator
     void Load(const std::string& program_path);
     void Input(uint8_t first, uint8_t second) noexcept;
 
-    Bus::DebugInfo GetDebugInfo() const { return main_bus_.GetDebugInfo(); };
+    Bus::DebugInfo GetDebugInfo() const { return bus_.GetDebugInfo(); };
     void PrintDebugInfo() const;
 
-    bool Stopped() const { return main_bus_.Stopped(); };
+    bool Stopped() const { return bus_.Stopped(); };
 
   private:
     // If GUI enabled, there is no need to print any information.
     bool gui_enabled_;
 
-    Bus main_bus_;
+    Bus bus_;
 };

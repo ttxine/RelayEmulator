@@ -9,9 +9,12 @@ Bus::Bus()
   cpu_ = std::unique_ptr<CPU>(new CPU(this));
 }
 
-void Bus::Clock()
+void Bus::Cycle()
 {
-  if (!Stopped()) cpu_->Clock();
+  if (!Stopped())
+  {
+    cpu_->Cycle();
+  }
 }
 
 uint16_t Bus::Read(uint8_t addr) const noexcept

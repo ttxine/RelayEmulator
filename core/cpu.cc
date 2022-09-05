@@ -3,21 +3,18 @@
 #include "core/cpu.h"
 #include "core/emulator.h"
 
-void CPU::Clock()
+void CPU::Cycle()
 {
-  // Each instruction requires 10 clock ticks, but only the result is important
-  // here, so all 10 of these are executed at a time.
-
   Fetch();
+  Execute();
 }
 
 void CPU::Fetch()
 {
   instruction_ = Read(PC_);
-  Decode();
 }
 
-void CPU::Decode()
+void CPU::Execute()
 {
   if (is_ALU(instruction_)) ALU();
   else if (is_HALT(instruction_)) HALT();
@@ -62,6 +59,7 @@ void CPU::LOADI()
   uint8_t Imm = instruction_ & 0x00FF;
 
   ++PC_;
+
   SetRegister(G, Read(Imm));
 }
 
@@ -71,6 +69,7 @@ void CPU::STORE()
   uint8_t P = instruction_ & 0x0007;
 
   ++PC_;
+
   if (IsAddressRegister(P))
   {
     Write(GetRegister(P), GetRegister(G));
@@ -124,6 +123,7 @@ void CPU::MOVI()
   uint8_t Imm = instruction_ & 0x00FF;
 
   ++PC_;
+
   if (CheckCondition(cond))
   {
     SetRegister(Gd, Imm);
@@ -333,7 +333,9 @@ void CPU::Reset() noexcept
   zero_ = false;
   carry_ = false;
 
-  is_halted_ = false;
+  instruction_ = 0x0000;
+
+  halted_ = false;
 }
 
 uint16_t CPU::Read(uint8_t addr) noexcept

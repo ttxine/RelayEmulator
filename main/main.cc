@@ -4,7 +4,6 @@
 #include "main/main.h"
 #include "core/emulator.h"
 #include "compiler/run.h"
-#include "utils/tempfile.h"
 
 int main(int argc, char* argv[])
 {

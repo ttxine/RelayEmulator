@@ -22,7 +22,7 @@ Emulator::Emulator(const std::string& program_path,
 
 void Emulator::Run()
 {
-  while (!main_bus_.Stopped())
+  while (!bus_.Stopped())
   {
     Step();
   }
@@ -35,7 +35,7 @@ void Emulator::Run()
 
 void Emulator::Debug()
 {
-  while (!main_bus_.Stopped())
+  while (!bus_.Stopped())
   {
     std::string command;
     while (command != "step" && command != "s")
@@ -69,9 +69,9 @@ void Emulator::Debug()
 
 void Emulator::Step()
 {
-  if (!main_bus_.Stopped())
+  if (!bus_.Stopped())
   {
-    main_bus_.Clock();
+    bus_.Cycle();
   }
   else
   {
@@ -82,7 +82,7 @@ void Emulator::Step()
 
 void Emulator::Reset() noexcept
 {
-  main_bus_.Reset();
+  bus_.Reset();
 }
 
 void Emulator::Load(const std::string& program_path)
@@ -104,17 +104,17 @@ void Emulator::Load(const std::string& program_path)
     program_data[addr] = ntohs(op);
   }
 
-  main_bus_.ConnectROM(ROM(program_data));
+  bus_.ConnectROM(ROM(program_data));
 }
 
 void Emulator::Input(uint8_t first, uint8_t second) noexcept
 {
-  main_bus_.Input(first, second);
+  bus_.Input(first, second);
 }
 
 void Emulator::Stop() noexcept
 {
-  main_bus_.StopClock();
+  bus_.StopClock();
 }
 
 void Emulator::PrintDebugInfo() const
