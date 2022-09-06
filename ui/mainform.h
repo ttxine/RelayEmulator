@@ -62,7 +62,7 @@ class reMainForm : public wxFrame
     void CreateControls();
     void CreateMenuBar();
     wxToolBar* CreateToolBar(long style = -1L, wxWindowID winid = wxID_ANY,
-                             const wxString& name = wxToolBarNameStr);
+                             const wxString& name = wxToolBarNameStr) override;
 
     void RunEmulatorThread();
 

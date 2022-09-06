@@ -2,7 +2,7 @@
 **Relay Emulator is a [relay computer](https://github.com/Dovgalyuk/Relay)
 emulator**, made in C++. It provides command-line tools for executing and
 debugging programs and a GUI for user-friendly input, program load and
-displaying computer status.
+displaying computer state.
 
 <p align="center">
     <img

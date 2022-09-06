@@ -318,7 +318,7 @@ uint8_t CPU::RCR(uint8_t Gs)
   return res;
 }
 
-void CPU::Reset() noexcept
+void CPU::Reset()
 {
   A_ = 0x00;
   B_ = 0x00;
@@ -338,12 +338,12 @@ void CPU::Reset() noexcept
   halted_ = false;
 }
 
-uint16_t CPU::Read(uint8_t addr) noexcept
+uint16_t CPU::Read(uint8_t addr)
 {
   return bus_->Read(addr);
 }
 
-void CPU::Write(uint8_t addr, uint8_t value) noexcept
+void CPU::Write(uint8_t addr, uint8_t value)
 {
   return bus_->Write(addr, value);
 }

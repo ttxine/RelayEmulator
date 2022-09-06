@@ -17,7 +17,7 @@ void Bus::Cycle()
   }
 }
 
-uint16_t Bus::Read(uint8_t addr) const noexcept
+uint16_t Bus::Read(uint8_t addr) const
 {
   if (addr < ROM::kProgramDataSize)
   {
@@ -34,16 +34,16 @@ uint16_t Bus::Read(uint8_t addr) const noexcept
   }
 }
 
-void Bus::Write(uint8_t addr, uint8_t value) noexcept
+void Bus::Write(uint8_t addr, uint8_t value)
 {
 }
 
-void Bus::Input(uint8_t first, uint8_t second) noexcept
+void Bus::Input(uint8_t first, uint8_t second)
 {
   rom_.Input(first, second);
 }
 
-void Bus::Reset() noexcept
+void Bus::Reset()
 {
   stopped_ = false;
   cpu_->Reset();

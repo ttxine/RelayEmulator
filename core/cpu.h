@@ -47,15 +47,15 @@ class CPU {
     void Cycle();
 
     // Sets all registers to 0 and halted_ to false.
-    void Reset() noexcept;
+    void Reset();
 
     uint8_t GetRegister(uint8_t code) const;
     void SetRegister(uint8_t code, uint8_t value);
     bool GetFlag(Flag flag) const;
     void SetFlag(Flag flag, bool value);
 
-    uint16_t Read(uint8_t addr) noexcept;
-    void Write(uint8_t addr, uint8_t value) noexcept;
+    uint16_t Read(uint8_t addr);
+    void Write(uint8_t addr, uint8_t value);
 
     bool Halted() const
     {

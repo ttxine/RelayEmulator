@@ -59,14 +59,14 @@ class Bus
     void StopClock() { stopped_ = true; }
     bool Stopped() const { return stopped_; }
 
-    uint16_t Read(uint8_t addr) const noexcept;
-    void Write(uint8_t addr, uint8_t value) noexcept;
+    uint16_t Read(uint8_t addr) const;
+    void Write(uint8_t addr, uint8_t value);
 
     // Emulates input switches. Used for easy input.
-    void Input(uint8_t first, uint8_t second) noexcept;
+    void Input(uint8_t first, uint8_t second);
 
     // Resets CPU and sets stopped_ to false.
-    void Reset() noexcept;
+    void Reset();
 
     DebugInfo GetDebugInfo() const;
 

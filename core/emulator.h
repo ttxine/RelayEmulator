@@ -23,11 +23,11 @@ class Emulator
 
     // Performs one instruction.
     void Step();
-    void Stop() noexcept;
-    void Reset() noexcept;
+    void Stop();
+    void Reset();
 
     void Load(const std::string& program_path);
-    void Input(uint8_t first, uint8_t second) noexcept;
+    void Input(uint8_t first, uint8_t second);
 
     Bus::DebugInfo GetDebugInfo() const { return bus_.GetDebugInfo(); };
     void PrintDebugInfo() const;

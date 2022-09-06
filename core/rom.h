@@ -15,10 +15,10 @@ class ROM
         const std::array<uint8_t, kInputSwitchesSize / 8>& input = {});
 
   public:
-    uint16_t ReadProgramData(uint8_t addr) const noexcept;
-    uint8_t ReadInputSwitches(uint8_t addr) const noexcept;
-    uint8_t ReadUnused(uint8_t addr) const noexcept;
-    void Input(uint8_t first, uint8_t second) noexcept;
+    uint16_t ReadProgramData(uint8_t addr) const;
+    uint8_t ReadInputSwitches(uint8_t addr) const;
+    uint8_t ReadUnused(uint8_t addr) const;
+    void Input(uint8_t first, uint8_t second);
 
   private:
     std::array<uint16_t, kProgramDataSize> program_data_;

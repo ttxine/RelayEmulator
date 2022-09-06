@@ -8,13 +8,13 @@ ROM::ROM(const std::array<uint16_t, kProgramDataSize>& program,
 {
 }
 
-void ROM::Input(uint8_t first, uint8_t second) noexcept
+void ROM::Input(uint8_t first, uint8_t second)
 {
   input_switches_[0] = first;
   input_switches_[1] = second;
 }
 
-uint16_t ROM::ReadProgramData(uint8_t addr) const noexcept
+uint16_t ROM::ReadProgramData(uint8_t addr) const
 {
   if (addr < kProgramDataSize)
   {
@@ -26,7 +26,7 @@ uint16_t ROM::ReadProgramData(uint8_t addr) const noexcept
   }
 }
 
-uint8_t ROM::ReadInputSwitches(uint8_t addr) const noexcept
+uint8_t ROM::ReadInputSwitches(uint8_t addr) const
 {
   uint8_t data = 0x00;
 
@@ -40,7 +40,7 @@ uint8_t ROM::ReadInputSwitches(uint8_t addr) const noexcept
   return data;
 }
 
-uint8_t ROM::ReadUnused(uint8_t addr) const noexcept
+uint8_t ROM::ReadUnused(uint8_t addr) const
 {
   return 0x00;
 }

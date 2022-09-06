@@ -75,12 +75,11 @@ void Emulator::Step()
   }
   else
   {
-    throw std::runtime_error("emulator: CPU is halted or ROM isn't connected "
-                             "to bus");
+    throw std::runtime_error("emulator: CPU is halted");
   }
 }
 
-void Emulator::Reset() noexcept
+void Emulator::Reset()
 {
   bus_.Reset();
 }
@@ -107,12 +106,12 @@ void Emulator::Load(const std::string& program_path)
   bus_.ConnectROM(ROM(program_data));
 }
 
-void Emulator::Input(uint8_t first, uint8_t second) noexcept
+void Emulator::Input(uint8_t first, uint8_t second)
 {
   bus_.Input(first, second);
 }
 
-void Emulator::Stop() noexcept
+void Emulator::Stop()
 {
   bus_.StopClock();
 }
