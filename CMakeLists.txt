@@ -27,8 +27,14 @@ set(UI_SOURCES
     ui/mainform.cc)
 
 include_directories(${PROJECT_SOURCE_DIR})
-add_subdirectory(thirdparty)
+
+find_package(wxWidgets COMPONENTS core base)
+if(wxWidgets_FOUND)
+    include(${wxWidgets_USE_FILE})
+    add_executable(relay-emulator-gui ${SOURCES} ${UI_SOURCES} ui/app.cc)
+    target_link_libraries(relay-emulator-gui PRIVATE ${wxWidgets_LIBRARIES})
+else(wxWidgets_FOUND)
+    message(WARNING "wxWidgets not found. GUI version of emulator will not be built.")
+endif(wxWidgets_FOUND)
 
 add_executable(relay-emulator ${SOURCES} main/main.cc)
-add_executable(relay-emulator-gui ${SOURCES} ${UI_SOURCES} ui/app.cc)
-target_link_libraries(relay-emulator-gui wxWidgets_external)

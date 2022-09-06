@@ -2,8 +2,8 @@
 
 #include "core/rom.h"
 
-ROM::ROM(const std::array<uint16_t, 128>& program,
-         const std::array<uint8_t, 2>& input)
+ROM::ROM(const std::array<uint16_t, kProgramDataSize>& program,
+         const std::array<uint8_t, kInputSwitchesSize / 8>& input)
     : program_data_(program), input_switches_(input)
 {
 }
