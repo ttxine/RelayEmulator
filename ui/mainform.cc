@@ -18,6 +18,7 @@ wxBEGIN_EVENT_TABLE(reMainForm, wxFrame)
   EVT_TOOL(ID::ID_STOP, reMainForm::OnStop)
   EVT_TOOL(ID::ID_RESET, reMainForm::OnReset)
   EVT_TOOL(ID::ID_INPUT, reMainForm::OnInput)
+  EVT_TOOL(wxID_ABOUT, reMainForm::OnAbout)
   EVT_CLOSE(reMainForm::OnClose)
 wxEND_EVENT_TABLE()
 
@@ -53,7 +54,7 @@ void reMainForm::CreateMenuBar()
   load_menu_->Append(ID_COMPILE_AND_LOAD, "Compile && Load");
 
   wxMenu* about_menu = new wxMenu();
-  about_menu->Append(wxID_ABOUT, "GitHub");
+  about_menu->Append(wxID_ABOUT, "Computer project page");
 
   wxMenu* menus[3] = { run_menu_, load_menu_, about_menu };
   const wxString 	titles[3] = { wxString("Run"), wxString("Load"),

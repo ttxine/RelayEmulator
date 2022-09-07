@@ -35,6 +35,6 @@ The emulator provides step-by-step program execution for debugging.
     make relay-emulator
     make relay-emulator-gui
     ```
-### Binaries
-- `relay-emulator` binary is command-line emulator
-- `relay-emulator-gui` binary is emulator with GUI
+### Executables
+- `relay-emulator` executable is command-line emulator
+- `relay-emulator-gui` executable is emulator with GUI
